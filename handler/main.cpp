@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
     proxy.init_input_mq();
     proxy.init_output_mq();
     proxy.init_shared_memory();
-    proxy.write_configs(config_paths);
+    proxy.write_policy_files(config_paths);
 
     // every time the user sends input, we recv output
     // this output is not guaranteed to be for that input
