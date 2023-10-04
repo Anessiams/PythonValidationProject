@@ -1,0 +1,5 @@
+---
+# Configuration yaml file
+validator:
+  container: path
+  policy: path
