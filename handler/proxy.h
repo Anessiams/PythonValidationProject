@@ -2,10 +2,16 @@
 #include <mqueue.h>
 #include <vector>
 
+// names for the shared resources
 #define INPUT_MQ_NAME "/dev/mqueue/file_paths_unvalidated"
 #define OUTPUT_MQ_NAME "/dev/mqueue/validated_results"
 #define SHM_NAME "/dev/shm/configs"
+// the size of a string in metadata including null terminator
 #define MD_STR_SIZE 256
+// the number of bytes to be read from a file at a given time
+#define BUF_SIZE 4096
+// the number of bytes to add with each resize
+#define RESIZE_ADD 409600
 
 // a struct to represent the metadata of a file
 typedef struct FileMetadata {
@@ -14,16 +20,13 @@ typedef struct FileMetadata {
     off_t size;
 } FileMetadata;
 
-constexpr off_t MD_COUNT_SIZE = sizeof(int);
-constexpr off_t MD_ENTRY_SIZE = sizeof(FileMetadata::name) + sizeof(FileMetadata::offset) + sizeof(FileMetadata::size);
-
 // a proxy class for the handler to communicate with shared resources
 class Proxy {
 private:
     struct mq_attr in_attr = {};
     struct mq_attr out_attr = {};
     int shm_fd = 0;
-    void *shm_ptr = nullptr;
+    char *shm_ptr = nullptr;
     off_t shm_size = 0;
     off_t shm_offset = 0;
     mqd_t input_mq = 0;
@@ -43,14 +46,15 @@ public:
     // creates a pool of shared memory with a list of config files
     void init_shared_memory();
 
-    // resizes the pool of shared memory by adding MD_ENTRY_SIZE
+    // resizes the pool of shared memory by adding size
     void resize(off_t);
+
+    // writes an input file to the pool of shared memory and writes to the metadata argument
+    // all file writes to shm should be done through this function
+    void write_file(const std::string &path, FileMetadata &);
 
     // writes a list of configuration files into shared memory
     void write_policy_files(const std::vector<std::string> &);
-
-    // writes a file to the pool of shared memory
-    FileMetadata write_file(const std::string &);
 
     // sends an input file to the mq
     void send_input_file(const std::string &);

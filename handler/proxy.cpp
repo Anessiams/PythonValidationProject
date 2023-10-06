@@ -3,6 +3,7 @@
 #include <sys/mman.h>
 #include <fstream>
 #include <csignal>
+#include <cstring>
 
 Proxy::Proxy() {
     // input mq attr
@@ -18,7 +19,7 @@ Proxy::Proxy() {
 }
 
 void Proxy::init_validator(const std::string &) {
-
+    
 }
 
 void Proxy::init_input_mq() {
@@ -44,7 +45,7 @@ void Proxy::init_shared_memory() {
         exit(1);
     }
     // memory map the shm
-    this->shm_ptr = mmap(nullptr, this->shm_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    this->shm_ptr = (char *) mmap(nullptr, this->shm_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (shm_ptr == (void *) -1) {
         syslog(LOG_ERR, "Failed to memory map the shared memory");
         exit(1);
@@ -52,12 +53,14 @@ void Proxy::init_shared_memory() {
 }
 
 void Proxy::send_input_file(const std::string &path) {
-    auto md = this->write_file(path);
+    FileMetadata md;
+    this->write_file(path, md);
 
-    // write the metadata as input to message queue so consumer knows a new file must be processed
-    // TODO IMPLEMENT A INPUT MSG FORMAT
+    // write the metadata as input to message queue using CSV format
+    std::string input_msg(md.name);
+    input_msg += "," + std::to_string(md.offset) + "," + std::to_string(md.size);
 
-    if (mq_send(this->input_mq, path.c_str(), path.size(), 0) != 0) {
+    if (mq_send(this->input_mq, input_msg.c_str(), path.size(), 0) != 0) {
         syslog(LOG_ERR, "Failed to send message '%s' to path queue", path.c_str());
     }
 }
@@ -81,57 +84,67 @@ ssize_t Proxy::recv_validator_output(char *buffer) const {
     return read;
 }
 
-void Proxy::write_policy_files(const std::vector<std::string> &paths) {
-    // total size includes the md entry size for each entry and a marker for entry count
-    auto md_total_size = + MD_COUNT_SIZE + (off_t) paths.size() * MD_ENTRY_SIZE;
-
-    // set some space to write the metadata to later
-    this->resize(md_total_size);
-    this->shm_offset = md_total_size;
-
-    FileMetadata metadata[paths.size()];
-
-    // copy the contents of each policy file into memory mapped file
-    for (int i = 0; i < paths.size(); i++) {
-        auto &path = paths[i];
-
-        std::ifstream is(path);
-        if (!is) {
-            syslog(LOG_ERR, "Cannot open file at path %s", path.c_str());
-            exit(1);
-        }
-
-        auto &md = metadata[i];
-        // copy the file from disk into shm buffer by buffer and keep track of metadata
-        // TODO IMPLEMENT BUFFERED FILE IO
-    }
-
-    // go back and write the metadata into the empty space we left
-    this->shm_offset = 0;
-    // TODO IMPLEMENT WRITE METADATA
-}
-
-void Proxy::resize(off_t size) {
-    auto new_size = this->shm_size + size;
-    if (ftruncate(this->shm_fd, new_size) < 0) {
-        syslog(LOG_ERR, "Failed to resize the memory mapped file to %ld", new_size);
-        exit(1);
-    }
-    this->shm_size = new_size;
-}
-
-
-FileMetadata Proxy::write_file(const std::string &path) {
-    FileMetadata md;
-
+void Proxy::write_file(const std::string &path, FileMetadata &md) {
     std::ifstream is(path);
     if (!is) {
         syslog(LOG_ERR, "Cannot open file at path %s", path.c_str());
         exit(1);
     }
 
-    // copy the file from disk into shm buffer by buffer and keep track of metadata
-    // TODO IMPLEMENT BUFFERED FILE IO
+    strncpy(md.name, path.c_str(), MD_STR_SIZE - 1);
+    md.offset = this->shm_offset;
 
-    return md;
+    // copy the file from disk into shm buffer by buffer
+    while (!is.eof()) {
+        is.read(this->shm_ptr + this->shm_offset, BUF_SIZE);
+
+        if (is.fail() && !is.eof()) {
+            syslog(LOG_ERR, "Failed to read buffer from a policy file");
+            exit(1);
+        }
+
+        // advance the offset and metadata counts
+        auto count = is.gcount();
+        this->shm_offset += count;
+        md.size += count;
+
+        // ensure we have enough space for more buffered reads
+        if (this->shm_size - this->shm_offset < BUF_SIZE) {
+            this->resize(RESIZE_ADD);
+        }
+
+        syslog(LOG_INFO, "Wrote a buffer for filename %s of size %ld to %ld into shm", md.name, count, this->shm_offset);
+    }
+}
+
+void Proxy::write_policy_files(const std::vector<std::string> &paths) {
+    // total size includes the md entry size for each entry and a marker for entry count
+    auto md_count = (off_t) paths.size();
+    auto md_total_size = (off_t) sizeof(md_count) + md_count * (off_t) sizeof(FileMetadata);
+
+    // set some space to write the metadata to, advance offset to write after
+    this->resize(md_total_size);
+    this->shm_offset = md_total_size;
+
+    FileMetadata metadata[md_count];
+
+    // copy the contents of each policy file into memory mapped file
+    for (int i = 0; i < paths.size(); i++) {
+        auto &path = paths[i];
+        auto &md = metadata[i];
+        write_file(path, md);
+    }
+
+    // copy metadata into the shm
+    std::memcpy(this->shm_ptr, &md_count, sizeof(md_count));
+    std::memcpy(this->shm_ptr + sizeof(md_count), metadata, sizeof(FileMetadata) * md_count);
+}
+
+void Proxy::resize(off_t added_size) {
+    auto new_size = this->shm_size + added_size;
+    if (ftruncate(this->shm_fd, new_size) < 0) {
+        syslog(LOG_ERR, "Failed to resize the memory mapped file to %ld", new_size);
+        exit(1);
+    }
+    this->shm_size = new_size;
 }
