@@ -1,1 +1,0 @@
-g++ -std=c++14 out config.cpp config.h main.cpp proxy.cpp proxy.h utils.h -lrt
