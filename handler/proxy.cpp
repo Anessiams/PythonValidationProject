@@ -8,46 +8,50 @@
 Proxy::Proxy() {
     // input mq attr
     in_attr.mq_flags = 0;
-    in_attr.mq_maxmsg = 100;
+    in_attr.mq_maxmsg = 10;
     in_attr.mq_msgsize = 4096;
     in_attr.mq_curmsgs = 0;
     // output mq attr
     out_attr.mq_flags = 0;
-    out_attr.mq_maxmsg = 100;
+    out_attr.mq_maxmsg = 10;
     out_attr.mq_msgsize = 4096;
     out_attr.mq_curmsgs = 0;
 }
 
 void Proxy::init_validator(const std::string &) {
-    
+
 }
 
 void Proxy::init_input_mq() {
     this->input_mq = mq_open(INPUT_MQ_NAME, O_WRONLY | O_CREAT, 0666, &this->in_attr);
+    syslog(LOG_INFO, "Opened input mq %d with attr maxmsg %ld and msgsize %ld", this->input_mq, in_attr.mq_maxmsg, in_attr.mq_msgsize);
     if (this->input_mq < 0) {
-        syslog(LOG_ERR, "Failed to open input message queue");
+        syslog(LOG_ERR, "Failed to open input message queue %d with error %d", this->input_mq, errno);
         exit(1);
     }
 }
 
 void Proxy::init_output_mq() {
     this->output_mq = mq_open(OUTPUT_MQ_NAME, O_RDONLY | O_CREAT, 0666, &this->out_attr);
+    syslog(LOG_INFO, "Opened output mq %d with attr maxmsg %ld and msgsize %ld", this->output_mq, out_attr.mq_maxmsg, out_attr.mq_msgsize);
     if (this->output_mq < 0) {
-        syslog(LOG_ERR, "Failed to open output message queue");
+        syslog(LOG_ERR, "Failed to open output message queue %d with error %d", this->output_mq, errno);
         exit(1);
     }
 }
 
 void Proxy::init_shared_memory() {
     this->shm_fd = shm_open(SHM_NAME, O_RDWR | O_CREAT, 0666);
+    syslog(LOG_INFO, "Opening shm %d", this->shm_fd);
     if (this->shm_fd < 0) {
-        syslog(LOG_ERR, "Failed to open shared memory");
+        syslog(LOG_ERR, "Failed to open shared memory %d with error %d", this->shm_fd, errno);
         exit(1);
     }
     // memory map the shm
     this->shm_ptr = (char *) mmap(nullptr, this->shm_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    syslog(LOG_INFO, "Memory mapped to shm pointer %p", this->shm_ptr);
     if (shm_ptr == (void *) -1) {
-        syslog(LOG_ERR, "Failed to memory map the shared memory");
+        syslog(LOG_ERR, "Failed to memory map the shared memory %d", errno);
         exit(1);
     }
 }

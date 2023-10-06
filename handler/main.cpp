@@ -17,13 +17,16 @@ int main(int argc, char **argv) {
     auto config_path = argv[1];
     syslog(LOG_INFO, "Running handler for config file %s", config_path);
 
-    auto config = load_yaml_file(config_path);
-    auto container_path = config["validator"]["container"].get_value();
-    auto policy_path = config["validator"]["policy"].get_value();
+//    auto config = load_yaml_file(config_path);
+//    auto container_path = config["validator"]["container"].get_value();
+//    auto policy_path = config["validator"]["policy"].get_value();
+
+    auto container_path = "/home/joseph/Documents/PythonValidationProject/test-container";
+    auto policy_path = "/home/joseph/Documents/PythonValidationProject/test-policy";
 
     std::vector<std::string> config_paths;
-    config_paths.push_back(container_path);
-    config_paths.push_back(policy_path);
+    config_paths.emplace_back(container_path);
+    config_paths.emplace_back(policy_path);
 
     Proxy proxy;
     proxy.init_validator(container_path);
