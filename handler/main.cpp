@@ -41,16 +41,14 @@ int main(int argc, char **argv) {
         // get a file to validate as user input
         std::string file_path;
         std::cin >> file_path;
-        proxy.send_input_file(file_path);
+        if (proxy.send_input_file(file_path) != 0) {
+            continue;
+        }
 
         // get the output for a validated file
         char buffer[OUTPUT_BUF_SIZE];
-        auto size_read = proxy.recv_validator_output(buffer);
-        if (size_read < 0) {
+        if (proxy.recv_validator_output(buffer, OUTPUT_BUF_SIZE) != 0) {
             continue;
-        }
-        if (size_read < OUTPUT_BUF_SIZE) {
-            buffer[size_read] = '\0';
         }
         std::cout << buffer;
     }

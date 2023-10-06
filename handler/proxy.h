@@ -23,8 +23,18 @@ typedef struct FileMetadata {
 // a proxy class for the handler to communicate with shared resources
 class Proxy {
 private:
-    struct mq_attr in_attr = {};
-    struct mq_attr out_attr = {};
+    struct mq_attr in_attr = {
+        .mq_flags = 0,
+        .mq_maxmsg = 10,
+        .mq_msgsize = 4096,
+        .mq_curmsgs = 0,
+    };
+    struct mq_attr out_attr = {
+        .mq_flags = 0,
+        .mq_maxmsg = 10,
+        .mq_msgsize = 128,
+        .mq_curmsgs = 0,
+    };
     int shm_fd = 0;
     char *shm_ptr = nullptr;
     off_t shm_size = 0;
@@ -51,14 +61,14 @@ public:
 
     // writes an input file to the pool of shared memory and writes to the metadata argument
     // all file writes to shm should be done through this function
-    void write_file(const std::string &path, FileMetadata &);
+    void write_file(std::ifstream &is, FileMetadata &);
 
     // writes a list of configuration files into shared memory
     void write_policy_files(const std::vector<std::string> &);
 
-    // sends an input file to the mq
-    void send_input_file(const std::string &);
+    // sends an input file to the mq, returns 0 if successful
+    int send_input_file(const std::string &);
 
-    // receives output from the mq and puts it into the buffer, blocking if there is no output
-    ssize_t recv_validator_output(char *) const;
+    // receives output from the mq and puts it into a buffer, blocking if there is no output, returns 0 if successful
+    int recv_validator_output(char *, ssize_t) const;
 };

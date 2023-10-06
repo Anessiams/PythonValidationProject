@@ -33,7 +33,7 @@ std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
     // scan lines until one of them is valid
     bool scan = true;
     std::string line;
-    while(scan) {
+    while (scan) {
         getline(is, line);
         std::string tr_line = trim(line);
 
@@ -48,18 +48,18 @@ std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
     auto tree = std::make_unique<YamlTree>(key, value);
 
     // TODO IMPLEMENT A DEPTH FIRST YAML PARSER
-         
-    std::stack<YamlTree*> nodes;
-    nodes.push(tree.get());
 
-    while(!nodes.empty()) {
-        YamlTree* curr = nodes.top();
-        nodes.pop();
-
-        curr->children.emplace_back(std::make_unique<YamlTree>(curr));
-        nodes.push(curr->children.back().get());
-           
-    }
+//    std::stack<YamlTree*> nodes;
+//    nodes.push(tree.get());
+//
+//    while(!nodes.empty()) {
+//        YamlTree* curr = nodes.top();
+//        nodes.pop();
+//
+//        curr->children.emplace_back(std::make_unique<YamlTree>(curr));
+//        nodes.push(curr->children.back().get());
+//
+//    }
     return tree;
 }
 
