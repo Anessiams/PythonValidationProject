@@ -3,9 +3,9 @@
 #include <vector>
 
 // names for the shared resources
-#define INPUT_MQ_NAME "/dev/mqueue/file_paths_unvalidated"
-#define OUTPUT_MQ_NAME "/dev/mqueue/validated_results"
-#define SHM_NAME "/dev/shm/configs"
+#define INPUT_MQ_NAME "/dev/mqueue/files_unvalidated"
+#define OUTPUT_MQ_NAME "/dev/mqueue/validator_results"
+#define SHM_NAME "/dev/shm/files"
 // the size of a string in metadata including null terminator
 #define MD_STR_SIZE 256
 // the number of bytes to be read from a file at a given time

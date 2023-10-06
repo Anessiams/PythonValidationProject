@@ -57,7 +57,7 @@ void Proxy::send_input_file(const std::string &path) {
     this->write_file(path, md);
 
     // write the metadata as input to message queue using CSV format
-    std::string input_msg(md.name);
+    std::string input_msg = md.name;
     input_msg += "," + std::to_string(md.offset) + "," + std::to_string(md.size);
 
     if (mq_send(this->input_mq, input_msg.c_str(), path.size(), 0) != 0) {
