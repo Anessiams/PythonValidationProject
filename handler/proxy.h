@@ -20,6 +20,12 @@ typedef struct FileMetadata {
     off_t size;
 } FileMetadata;
 
+inline std::string metadata_to_string(FileMetadata &md) {
+    std::string input_msg = md.name;
+    input_msg += "," + std::to_string(md.offset) + "," + std::to_string(md.size);
+    return input_msg;
+}
+
 // a proxy class for the handler to communicate with shared resources
 class Proxy {
 private:

@@ -5,6 +5,8 @@
 #include <csignal>
 #include <cstring>
 
+#define ITH_MD_OFFSET(i) (this->shm_ptr + sizeof(md_count) + sizeof(FileMetadata) * i)
+
 Proxy::Proxy() = default;
 
 void Proxy::start_validator(const std::string &) {
@@ -64,8 +66,7 @@ int Proxy::send_input_file(const std::string &path) {
     this->write_file(is, md);
 
     // write the metadata as input to message queue using CSV format
-    std::string input_msg = md.name;
-    input_msg += "," + std::to_string(md.offset) + "," + std::to_string(md.size);
+    std::string input_msg = metadata_to_string(md);
 
     if (mq_send(this->input_mq, input_msg.c_str(), path.size(), 0) != 0) {
         syslog(LOG_ERR, "Failed to send message '%s' to input mq with error %d", input_msg.c_str(), errno);
@@ -141,5 +142,15 @@ void Proxy::write_file(std::ifstream &is, FileMetadata &md) {
 }
 
 void Proxy::debug_shm() {
-    // TODO IMPLEMENT DEBUG SHM
+    off_t md_count;
+    std::memcpy(&md_count, this->shm_ptr, sizeof(md_count));
+
+    std::string md_log;
+    FileMetadata metadata[md_count];
+    for (int i = 0; i < md_count; i++) {
+        std::memcpy(&metadata[i], ITH_MD_OFFSET(i), sizeof(FileMetadata));
+        md_log += metadata_to_string(metadata[i]) + " ";
+    }
+
+    syslog(LOG_INFO, "%ld %s %s", md_count, md_log.c_str(), ITH_MD_OFFSET(md_count));
 }
