@@ -46,20 +46,23 @@ std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
     auto value = trim(line.substr(delim + 1));
 
     auto tree = std::make_unique<YamlTree>(key, value);
+    
+  // TODO IMPLEMENT A DEPTH FIRST YAML PARSER
+         
+    std::stack<YamlTree*> nodes;
+    nodes.push(tree.get());
 
-    // TODO IMPLEMENT A DEPTH FIRST YAML PARSER
+  while(!nodes.empty()) {
 
-//    std::stack<YamlTree*> nodes;
-//    nodes.push(tree.get());
-//
-//    while(!nodes.empty()) {
-//        YamlTree* curr = nodes.top();
-//        nodes.pop();
-//
-//        curr->children.emplace_back(std::make_unique<YamlTree>(curr));
-//        nodes.push(curr->children.back().get());
-//
-//    }
+  YamlTree* curr = nodes.top();
+  nodes.pop();
+
+  curr->children.emplace_back(std::make_unique<YamlTree>(curr));
+
+  nodes.push(curr->children.back().get());
+
+}
+    
     return tree;
 }
 
