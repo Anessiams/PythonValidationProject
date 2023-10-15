@@ -15,6 +15,9 @@ COPY ./src /validator/src
 RUN pip install posix-ipc 
 # RUN pip install python-signal need to confirm if included or installed.
 
+COPY ./logging.conf /validator
+RUN pip install --no-cache-dir -r /validator/logging.conf
+
 #this is the executable to run this container
 # im using Runner as our executable file
 # linux terminal equivalence: python3 Runner.py
