@@ -1,7 +1,7 @@
-#include <config.h>
+#include "config.h"
 #include <fstream>
 #include <syslog.h>
-#include <utils.h>
+#include "utils.h"
 #include <stack>
 #include <memory>
 
@@ -52,16 +52,16 @@ std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
     std::stack<YamlTree*> nodes;
     nodes.push(tree.get());
 
-  while(!nodes.empty()) {
-
-  YamlTree* curr = nodes.top();
-  nodes.pop();
-
-  curr->children.emplace_back(std::make_unique<YamlTree>(curr));
-
-  nodes.push(curr->children.back().get());
-
-}
+//    while(!nodes.empty()) {
+//
+//      YamlTree* curr = nodes.top();
+//      nodes.pop();
+//
+//      curr->children.emplace_back(std::make_unique<YamlTree>(curr));
+//
+//      nodes.push(curr->children.back().get());
+//
+//    }
     
     return tree;
 }

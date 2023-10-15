@@ -8,8 +8,6 @@ private:
     std::string key;
     std::string value;
 public:
-    std::vector<std::unique_ptr<YamlTree>> children;
-    
     YamlTree(const std::string &, const std::string &);
 
     // get the child at a given key, throwing an exception if not defined

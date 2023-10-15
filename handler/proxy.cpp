@@ -1,4 +1,4 @@
-#include <proxy.h>
+#include "proxy.h"
 #include <syslog.h>
 #include <sys/mman.h>
 #include <fstream>
@@ -122,6 +122,7 @@ void Proxy::write_policy_files(const std::vector<std::string> &paths) {
 
 void Proxy::write_file(std::ifstream &is, FileMetadata &md) {
     md.offset = this->curr_offset;
+    md.size = 0;
 
     // copy the file from disk into shm buffer by buffer
     while (!is.eof()) {

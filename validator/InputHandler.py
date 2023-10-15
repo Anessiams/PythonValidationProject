@@ -4,7 +4,7 @@ import Logger as log
 
 # Message Queue descriptor.
 receiverMQ = None
-QUEUE_NAME = "/CppToPython"
+QUEUE_NAME = "/filesunvalidated"
 isValidQueue = False
 
 # Note: any print methods in this should be changed into a function
