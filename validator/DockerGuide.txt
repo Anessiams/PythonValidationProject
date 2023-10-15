@@ -1,6 +1,8 @@
 ----Using Docker-----
 References: https://collabnix.com/docker-cheatsheet/
 dockerfile>run images, Images>run containers, containers> run application
+must have docker installed
+    https://docs.rockylinux.org/gemstones/docker/
 
 ----Dockerfile-------
 Order of instruction in the Dockerfile is important, when updating the file keep the order: 
