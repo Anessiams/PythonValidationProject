@@ -1,0 +1,38 @@
+----Using Docker-----
+References: https://collabnix.com/docker-cheatsheet/
+dockerfile>run images, Images>run containers, containers> run application
+
+----Dockerfile-------
+Order of instruction in the Dockerfile is important, when updating the file keep the order: 
+    1. Base image(FROM python:3.11)
+    2. Evironment Set up (WORKDIR to set up directory) 
+    3. System level dependencies
+    4. Copy application code to the image
+        Best Practice: RUN pip install directly after COPY requirements.txt and before COPY ./src
+    5. Install the application dependencies (python libraries)
+    6. App specific configuration
+    7. Command to run the application
+
+----Commands quick list-----------
+Create a Docker image: docker build
+    use docker build to create the initial docker image from a dockerfile
+    Note: This does NOT start or create the container
+        CMD: docker build -t dataValidator
+        where "-t dataValidator" is used to specify a name for the built image.
+    Returns an id 
+
+2 ways to make a new container and start It: 
+    Docker Run Command
+        creates the new container and starts the container at the same time
+        CMD: docker run dataValidator
+    
+    Docker Create and Docker Start
+        Creates a new container that can be started at a later time. 
+        
+        CMD: docker create dataValidator
+        This will return the container ID
+
+        CMD: docker run dataValidator
+        Can be used to start or restart a container. 
+
+
