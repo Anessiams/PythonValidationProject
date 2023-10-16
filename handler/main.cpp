@@ -36,7 +36,6 @@ void on_signal(int s) {
 //    auto yaml_tree = load_yaml_file(config_path);
     auto config = get_config();
 
-    // start the input loop to relay stdin and stdout to resources
     InProxy in_proxy;
     OutProxy out_proxy;
     ValidatorRunner runner;
@@ -45,6 +44,7 @@ void on_signal(int s) {
     runner.run_many(config.validator_count);
     in_proxy.debug_shm();
 
+    // start the input loop to relay stdin and stdout to resources
     while (true) {
         std::string input;
         std::cin >> input;

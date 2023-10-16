@@ -6,15 +6,18 @@
 
 OutProxy::OutProxy() {
     this->output_mq = mq_open(OUTPUT_MQ_NAME, O_RDONLY | O_CREAT, 0666, &this->out_attr);
-    syslog(LOG_INFO, "Opened output mq %d with attr maxmsg %ld and msgsize %ld", this->output_mq, out_attr.mq_maxmsg, out_attr.mq_msgsize);
+    syslog(LOG_INFO, "Opened output mq with attr maxmsg %ld and msgsize %ld", out_attr.mq_maxmsg, out_attr.mq_msgsize);
     if (this->output_mq < 0) {
-        syslog(LOG_ERR, "Failed to open output message queue %d with error %d", this->output_mq, errno);
+        syslog(LOG_ERR, "Failed to open output message queue with error %d", errno);
         exit(1);
     }
 }
 
-OutProxy::~OutProxy() = default;
-
+OutProxy::~OutProxy() {
+    if (mq_close(this->output_mq) != 0) {
+        syslog(LOG_ERR, "Failed to close output message queue with error %d", errno);
+    }
+}
 
 int OutProxy::receive_output(std::string &output) const {
     auto msg_len = this->out_attr.mq_msgsize + 1;

@@ -5,18 +5,18 @@
 #include <cstring>
 
 InProxy::InProxy() {
-    // setting up the input queue
+    // opening up the input queue
     this->input_mq = mq_open(INPUT_MQ_NAME, O_WRONLY | O_CREAT, 0666, &this->in_attr);
-    syslog(LOG_INFO, "Opened input mq %d with attr maxmsg %ld and msgsize %ld", this->input_mq, in_attr.mq_maxmsg, in_attr.mq_msgsize);
+    syslog(LOG_INFO, "Opened input mq with attr maxmsg %ld and msgsize %ld", in_attr.mq_maxmsg, in_attr.mq_msgsize);
     if (this->input_mq < 0) {
-        syslog(LOG_ERR, "Failed to open input message queue %d with error %d", this->input_mq, errno);
+        syslog(LOG_ERR, "Failed to open input message queue with error %d", errno);
         exit(1);
     }
-    // setting up the shm for input
+    // opening up the shm for input
     this->shm_fd = shm_open(SHM_NAME, O_RDWR | O_CREAT, 0666);
     syslog(LOG_INFO, "Opened shm %d", this->shm_fd);
     if (this->shm_fd < 0) {
-        syslog(LOG_ERR, "Failed to open shared memory %d with error %d", this->shm_fd, errno);
+        syslog(LOG_ERR, "Failed to open shared memory with error %d", errno);
         exit(1);
     }
     // set the size for shm
@@ -27,13 +27,26 @@ InProxy::InProxy() {
     // memory map the shm
     this->shm_ptr = (char *) mmap(nullptr, SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (shm_ptr == (void *) -1) {
-        syslog(LOG_ERR, "Failed to memory map the shared memory %d", errno);
+        syslog(LOG_ERR, "Failed to memory map the shm with error %d", errno);
         exit(1);
     }
     syslog(LOG_INFO, "Memory mapped shm to address %p", this->shm_ptr);
 }
 
-InProxy::~InProxy() = default;
+InProxy::~InProxy() {
+    // close input message queue
+    if (mq_close(this->input_mq) != 0) {
+        syslog(LOG_ERR, "Failed to close input message queue with error %d", errno);
+    }
+    // unmap the shm
+    if (munmap(this->shm_ptr, SHM_SIZE) != 0) {
+        syslog(LOG_ERR, "Failed to memory unmap the shm with error %d", errno);
+    }
+    // close the shm
+    if (close(this->shm_fd) != 0) {
+        syslog(LOG_ERR, "Failed to close shared memory with error %d", errno);
+    }
+}
 
 int InProxy::send_input_file(const std::string &path) {
     FileMetadata md;
