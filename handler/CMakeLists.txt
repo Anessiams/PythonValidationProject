@@ -9,7 +9,15 @@ add_executable(PythonValidationProject
         config.cpp
         config.h
         main.cpp
-        proxy.cpp
-        proxy.h
-        utils.h)
+        inproxy.cpp
+        inproxy.h
+        utils.h
+        outproxy.cpp
+        outproxy.h
+        metadata.h
+        runner.cpp
+        runner.h
+        handler.cpp
+        handler.h
+)
 target_link_libraries(PythonValidationProject PUBLIC rt)

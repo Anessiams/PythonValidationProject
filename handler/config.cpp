@@ -85,3 +85,11 @@ YamlTree &&load_yaml_file(const std::string &path) {
     auto tree = read_into_tree(is);
     return std::move(*tree);
 }
+
+Config get_config() {
+    Config config;
+    config.validator_count = 1;
+    config.policy_paths.emplace_back("../../test-policy");
+    config.policy_paths.emplace_back("../../test-policy-1");
+    return config;
+}

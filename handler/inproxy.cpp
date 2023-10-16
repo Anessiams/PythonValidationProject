@@ -1,4 +1,4 @@
-#include "proxy.h"
+#include "inproxy.h"
 #include <syslog.h>
 #include <sys/mman.h>
 #include <fstream>
@@ -7,31 +7,15 @@
 
 #define ITH_MD_OFFSET(i) (this->shm_ptr + sizeof(md_count) + sizeof(FileMetadata) * i)
 
-Proxy::Proxy() = default;
-
-void Proxy::start_validator(const std::string &) {
-
-}
-
-void Proxy::init_input_mq() {
+InProxy::InProxy() {
+    // setting up the input queue
     this->input_mq = mq_open(INPUT_MQ_NAME, O_WRONLY | O_CREAT, 0666, &this->in_attr);
     syslog(LOG_INFO, "Opened input mq %d with attr maxmsg %ld and msgsize %ld", this->input_mq, in_attr.mq_maxmsg, in_attr.mq_msgsize);
     if (this->input_mq < 0) {
         syslog(LOG_ERR, "Failed to open input message queue %d with error %d", this->input_mq, errno);
         exit(1);
     }
-}
-
-void Proxy::init_output_mq() {
-    this->output_mq = mq_open(OUTPUT_MQ_NAME, O_RDONLY | O_CREAT, 0666, &this->out_attr);
-    syslog(LOG_INFO, "Opened output mq %d with attr maxmsg %ld and msgsize %ld", this->output_mq, out_attr.mq_maxmsg, out_attr.mq_msgsize);
-    if (this->output_mq < 0) {
-        syslog(LOG_ERR, "Failed to open output message queue %d with error %d", this->output_mq, errno);
-        exit(1);
-    }
-}
-
-void Proxy::init_shared_memory() {
+    // setting up the shm for input
     this->shm_fd = shm_open(SHM_NAME, O_RDWR | O_CREAT, 0666);
     syslog(LOG_INFO, "Opened shm %d", this->shm_fd);
     if (this->shm_fd < 0) {
@@ -52,7 +36,7 @@ void Proxy::init_shared_memory() {
     syslog(LOG_INFO, "Memory mapped shm to address %p", this->shm_ptr);
 }
 
-int Proxy::send_input_file(const std::string &path) {
+int InProxy::send_input_file(const std::string &path) {
     FileMetadata md;
 
     std::ifstream is(path);
@@ -66,28 +50,18 @@ int Proxy::send_input_file(const std::string &path) {
     this->write_file(is, md);
 
     // write the metadata as input to message queue using CSV format
-    std::string input_msg = metadata_to_string(md);
+    auto input_msg = metadata_to_string(md);
 
-    if (mq_send(this->input_mq, input_msg.c_str(), path.size(), 0) != 0) {
+    auto status = mq_send(this->input_mq, input_msg.c_str(), path.size(), 0);
+    if (status != 0) {
         syslog(LOG_ERR, "Failed to send message '%s' to input mq with error %d", input_msg.c_str(), errno);
-        return 1;
+        return 2;
     }
     syslog(LOG_ERR, "Sent an input file %s to the input mq", path.c_str());
     return 0;
 }
 
-int Proxy::recv_validator_output(char *buffer, ssize_t buf_size) const {
-    ssize_t msg_len = buf_size - 1;
-    ssize_t recv_len = mq_receive(this->output_mq, buffer, msg_len, nullptr);
-    if (recv_len < 0) {
-        syslog(LOG_ERR, "Failed to recv from output mq with error %d", errno);
-        return 1;
-    }
-    syslog(LOG_INFO, "Recv message of length %ld into buffer of size %ld from output mq", recv_len, msg_len);
-    return 0;
-}
-
-void Proxy::write_policy_files(const std::vector<std::string> &paths) {
+void InProxy::write_policy_files(const std::vector<std::string> &paths) {
     // total size includes the md entry size for each entry and a marker for entry count
     auto md_count = (off_t) paths.size();
     auto md_total_size = (off_t) sizeof(md_count) + md_count * (off_t) sizeof(FileMetadata);
@@ -120,7 +94,7 @@ void Proxy::write_policy_files(const std::vector<std::string> &paths) {
     this->inf_offset = this->curr_offset;
 }
 
-void Proxy::write_file(std::ifstream &is, FileMetadata &md) {
+void InProxy::write_file(std::ifstream &is, FileMetadata &md) {
     md.offset = this->curr_offset;
     md.size = 0;
 
@@ -142,7 +116,12 @@ void Proxy::write_file(std::ifstream &is, FileMetadata &md) {
     }
 }
 
-void Proxy::debug_shm() {
+
+void InProxy::cleanup_resources() {
+
+}
+
+void InProxy::debug_shm() {
     off_t md_count;
     std::memcpy(&md_count, this->shm_ptr, sizeof(md_count));
 
@@ -155,3 +134,4 @@ void Proxy::debug_shm() {
 
     syslog(LOG_INFO, "%ld %s %s", md_count, md_log.c_str(), ITH_MD_OFFSET(md_count));
 }
+

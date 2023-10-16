@@ -2,6 +2,11 @@
 #include <memory>
 #include <string>
 
+struct Config {
+    std::vector<std::string> policy_paths;
+    int validator_count;
+};
+
 class YamlTree {
 private:
     std::vector<std::unique_ptr<YamlTree>> children;
@@ -22,3 +27,6 @@ public:
 
 // parses the config into a yaml tree
 YamlTree &&load_yaml_file(const std::string &);
+
+// converts the parsed yaml tree to a config struct
+Config get_config();

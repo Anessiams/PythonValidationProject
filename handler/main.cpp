@@ -1,12 +1,22 @@
-#include "proxy.h"
-#include "config.h"
-#include "syslog.h"
+#include <syslog.h>
 #include <iostream>
-#include <vector>
+#include <fstream>
+#include <atomic>
+#include <csignal>
+#include <thread>
+#include "handler.h"
 
-#define OUTPUT_BUF_SIZE 136
+std::atomic<bool> interrupted(false);
+
+void interrupt(int) {
+    syslog(LOG_INFO, "Handler signalled to interrupt");
+    interrupted.store(true);
+}
 
 [[noreturn]] int main(int argc, char **argv) {
+    signal(SIGINT, interrupt);
+    signal(SIGTERM, interrupt);
+
     openlog("forcepoint-msg-handler", LOG_PID, LOG_USER);
 
     if (argc < 2) {
@@ -15,44 +25,27 @@
     }
 
     auto config_path = argv[1];
-    syslog(LOG_INFO, "Running handler for config file %start", config_path);
+    syslog(LOG_INFO, "Running handler for config file %s", config_path);
 
-//    auto config = load_yaml_file(config_path);
-//    auto container_path = config["validator"]["container"].get_value();
-//    auto policy_path = config["validator"]["policy"].get_value();
+//    auto yaml_tree = load_yaml_file(config_path);
+    auto config = get_config();
 
-    auto container_path = "/home/joseph/Documents/PythonValidationProject/test-container";
-    auto policy_path = "/home/joseph/Documents/PythonValidationProject/test-policy";
+    Handler handler(config);
 
-    std::vector<std::string> config_paths;
-    config_paths.emplace_back(container_path);
-    config_paths.emplace_back(policy_path);
+    // start a thread to wait for an interrupt then cleanup the handler
+    auto wait_cleanup = [](Handler *handler) {
+        while(!interrupted.load()) {
+        }
+        syslog(LOG_INFO, "Handler received an interruption");
+        handler->cleanup_resources();
+    };
+    std::thread cleanup_thread(wait_cleanup, &handler);
 
-    Proxy proxy;
-    proxy.start_validator(container_path);
-    proxy.init_input_mq();
-    proxy.init_output_mq();
-    proxy.init_shared_memory();
-    proxy.write_policy_files(config_paths);
-    proxy.debug_shm();
-
-    // every time the user sends input, we recv output
-    // this output is not guaranteed to be for that input
+    // start the input loop to relay stdin and stdout to handler's io
     while (true) {
-        // get a file to validate as user input
-        std::string file_path;
-        std::cin >> file_path;
-        if (proxy.send_input_file(file_path) != 0) {
-            continue;
-        }
-
-        proxy.debug_shm();
-
-        // get the output for a validated file
-        char buffer[OUTPUT_BUF_SIZE];
-        if (proxy.recv_validator_output(buffer, OUTPUT_BUF_SIZE) != 0) {
-            continue;
-        }
-        std::cout << buffer;
+        std::string input;
+        std::cin >> input;
+        std::string output = handler.handle_io(input);
+        std::cout << output;
     }
 }
