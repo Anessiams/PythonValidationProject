@@ -1,23 +1,29 @@
 #include <syslog.h>
 #include <iostream>
-#include <fstream>
-#include <atomic>
 #include <csignal>
-#include <thread>
-#include "handler.h"
+#include "config.h"
+#include "inproxy.h"
+#include "outproxy.h"
+#include "runner.h"
 
-std::atomic<bool> interrupted(false);
-
-void interrupt(int) {
-    syslog(LOG_INFO, "Handler signalled to interrupt");
-    interrupted.store(true);
+void on_signal(int s) {
+    syslog(LOG_INFO, "Handler received a shutdown signal %d", s);
+    if (mq_unlink(INPUT_MQ_NAME) != 0) {
+        syslog(LOG_INFO, "Failed to unlink input queue %s", INPUT_MQ_NAME);
+    }
+    if (mq_unlink(OUTPUT_MQ_NAME)) {
+        syslog(LOG_INFO, "Failed to unlink output queue %s", OUTPUT_MQ_NAME);
+    }
+    if (shm_unlink(SHM_NAME)) {
+        syslog(LOG_INFO, "Failed to unlink shm %s" ,SHM_NAME);
+    }
 }
 
 [[noreturn]] int main(int argc, char **argv) {
-    signal(SIGINT, interrupt);
-    signal(SIGTERM, interrupt);
-
     openlog("forcepoint-msg-handler", LOG_PID, LOG_USER);
+
+    signal(SIGINT, on_signal);
+    signal(SIGTERM, on_signal);
 
     if (argc < 2) {
         syslog(LOG_ERR, "Need to specify an argument for config file path");
@@ -30,22 +36,30 @@ void interrupt(int) {
 //    auto yaml_tree = load_yaml_file(config_path);
     auto config = get_config();
 
-    Handler handler(config);
+    // start the input loop to relay stdin and stdout to resources
+    InProxy in_proxy;
+    OutProxy out_proxy;
+    ValidatorRunner runner;
 
-    // start a thread to wait for an interrupt then cleanup the handler
-    auto wait_cleanup = [](Handler *handler) {
-        while(!interrupted.load()) {
-        }
-        syslog(LOG_INFO, "Handler received an interruption");
-        handler->cleanup_resources();
-    };
-    std::thread cleanup_thread(wait_cleanup, &handler);
+    in_proxy.write_policy_files(config.policy_paths);
+    runner.run_many(config.validator_count);
+    in_proxy.debug_shm();
 
-    // start the input loop to relay stdin and stdout to handler's io
     while (true) {
         std::string input;
         std::cin >> input;
-        std::string output = handler.handle_io(input);
+
+        auto in_status = in_proxy.send_input_file(input);
+        if (in_status != 0) {
+            continue;
+        }
+
+        std::string output;
+        auto out_status = out_proxy.receive_output(output);
+        if (out_status != 0) {
+            continue;
+        }
+
         std::cout << output;
     }
 }

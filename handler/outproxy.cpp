@@ -1,8 +1,7 @@
-#include <sys/syslog.h>
+#include <syslog.h>
 #include <cstdlib>
 #include <cerrno>
 #include <string>
-#include <iostream>
 #include "outproxy.h"
 
 OutProxy::OutProxy() {
@@ -13,6 +12,9 @@ OutProxy::OutProxy() {
         exit(1);
     }
 }
+
+OutProxy::~OutProxy() = default;
+
 
 int OutProxy::receive_output(std::string &output) const {
     auto msg_len = this->out_attr.mq_msgsize + 1;
@@ -29,8 +31,4 @@ int OutProxy::receive_output(std::string &output) const {
 
     syslog(LOG_INFO, "Recv message of length %ld from output mq", recv_len);
     return 0;
-}
-
-void OutProxy::cleanup_resources() {
-
 }

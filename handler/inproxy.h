@@ -1,5 +1,6 @@
 #include <string>
 #include <mqueue.h>
+#include <sys/mman.h>
 #include <vector>
 #include "metadata.h"
 
@@ -15,13 +16,13 @@
 class InProxy {
 private:
     // input queue
-    struct mq_attr in_attr = {
+    const struct mq_attr in_attr = {
         .mq_flags = 0,
         .mq_maxmsg = 10,
         .mq_msgsize = 4096,
         .mq_curmsgs = 0,
     };
-    mqd_t input_mq = 0;
+    mqd_t input_mq;
     // shm for input files
     int shm_fd = 0;
     char *shm_ptr = nullptr;
@@ -29,6 +30,8 @@ private:
     off_t inf_offset = 0; // offset where input files begin (after policy files)
 public:
     InProxy();
+
+    ~InProxy();
 
     // writes the policy files into the policy section of shm
     void write_policy_files(const std::vector<std::string> &paths);
@@ -39,9 +42,9 @@ public:
     // sends an input file to the mq, returns 0 if successful
     int send_input_file(const std::string &);
 
-    // cleanup all input resources
-    void cleanup_resources();
+    // gets a pointer to the metadata in shm at the index
+    inline char *get_md_ptr(off_t md_index) const;
 
     // debug shm by logging contents of policy metadata headers and files to syslog
-    void debug_shm();
+    void debug_shm() const;
 };

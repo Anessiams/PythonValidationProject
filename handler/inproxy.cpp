@@ -1,11 +1,8 @@
 #include "inproxy.h"
 #include <syslog.h>
-#include <sys/mman.h>
 #include <fstream>
 #include <csignal>
 #include <cstring>
-
-#define ITH_MD_OFFSET(i) (this->shm_ptr + sizeof(md_count) + sizeof(FileMetadata) * i)
 
 InProxy::InProxy() {
     // setting up the input queue
@@ -35,6 +32,8 @@ InProxy::InProxy() {
     }
     syslog(LOG_INFO, "Memory mapped shm to address %p", this->shm_ptr);
 }
+
+InProxy::~InProxy() = default;
 
 int InProxy::send_input_file(const std::string &path) {
     FileMetadata md;
@@ -116,22 +115,21 @@ void InProxy::write_file(std::ifstream &is, FileMetadata &md) {
     }
 }
 
-
-void InProxy::cleanup_resources() {
-
+char *InProxy::get_md_ptr(off_t md_index) const {
+    return this->shm_ptr + sizeof(off_t) + sizeof(FileMetadata) * md_index;
 }
 
-void InProxy::debug_shm() {
+void InProxy::debug_shm() const {
     off_t md_count;
     std::memcpy(&md_count, this->shm_ptr, sizeof(md_count));
 
     std::string md_log;
     FileMetadata metadata[md_count];
     for (int i = 0; i < md_count; i++) {
-        std::memcpy(&metadata[i], ITH_MD_OFFSET(i), sizeof(FileMetadata));
+        std::memcpy(&metadata[i], this->get_md_ptr(i), sizeof(FileMetadata));
         md_log += metadata_to_string(metadata[i]) + " ";
     }
 
-    syslog(LOG_INFO, "%ld %s %s", md_count, md_log.c_str(), ITH_MD_OFFSET(md_count));
+    syslog(LOG_INFO, "%ld %s %s", md_count, md_log.c_str(), this->get_md_ptr(md_count));
 }
 
