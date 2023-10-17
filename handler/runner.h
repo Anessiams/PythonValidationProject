@@ -1,6 +1,9 @@
+#include <string>
+
 class ValidatorRunner {
+    std::string &container_path;
 public:
-    ValidatorRunner();
+    explicit ValidatorRunner(std::string &);
 
     // use_config a single validator
     void run_one();

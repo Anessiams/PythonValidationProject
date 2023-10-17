@@ -32,23 +32,20 @@ void on_signal(int s) {
 
     auto config_path = argv[1];
     syslog(LOG_INFO, "Running handler for config file %s", config_path);
-
-//    auto yaml_tree = load_yaml_file(config_path);
-    auto config = get_config();
+    auto config = parse_config(config_path);
 
     InProxy in_proxy;
     OutProxy out_proxy;
-    ValidatorRunner runner;
+    ValidatorRunner runner(config.container_path);
 
     in_proxy.write_policy_files(config.policy_paths);
-    runner.run_many(config.validator_count);
-    in_proxy.debug_shm();
-
+    runner.run_many(config.child_count);
     // start the input loop to relay stdin and stdout to resources
     while (true) {
+        in_proxy.debug_shm();
+
         std::string input;
         std::cin >> input;
-
         auto in_status = in_proxy.send_input_file(input);
         if (in_status != 0) {
             continue;

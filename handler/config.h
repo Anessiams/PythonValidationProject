@@ -4,7 +4,8 @@
 
 struct Config {
     std::vector<std::string> policy_paths;
-    int validator_count;
+    std::string container_path;
+    int child_count = 1;
 };
 
 class YamlTree {
@@ -25,8 +26,8 @@ public:
     std::string &get_value();
 };
 
-// parses the config into a yaml tree
+// parses the config file into a yaml tree
 YamlTree &&load_yaml_file(const std::string &);
 
-// converts the parsed yaml tree to a config struct
-Config get_config();
+// converts the config file to a config struct
+Config parse_config(const std::string &);

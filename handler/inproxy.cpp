@@ -6,50 +6,51 @@
 
 InProxy::InProxy() {
     // opening up the input queue
-    this->input_mq = mq_open(INPUT_MQ_NAME, O_WRONLY | O_CREAT, 0666, &this->in_attr);
+    input_mq = mq_open(INPUT_MQ_NAME, O_WRONLY | O_CREAT, 0666, &in_attr);
     syslog(LOG_INFO, "Opened input mq with attr maxmsg %ld and msgsize %ld", in_attr.mq_maxmsg, in_attr.mq_msgsize);
-    if (this->input_mq < 0) {
+    if (input_mq < 0) {
         syslog(LOG_ERR, "Failed to open input message queue with error %d", errno);
         exit(1);
     }
     // opening up the shm for input
-    this->shm_fd = shm_open(SHM_NAME, O_RDWR | O_CREAT, 0666);
-    syslog(LOG_INFO, "Opened shm %d", this->shm_fd);
-    if (this->shm_fd < 0) {
+    shm_fd = shm_open(SHM_NAME, O_RDWR | O_CREAT, 0666);
+    syslog(LOG_INFO, "Opened shm %d", shm_fd);
+    if (shm_fd < 0) {
         syslog(LOG_ERR, "Failed to open shared memory with error %d", errno);
         exit(1);
     }
     // set the size for shm
-    if (ftruncate(this->shm_fd, SHM_SIZE) < 0) {
-        syslog(LOG_ERR, "Failed to set the shm size to %d", SHM_SIZE);
+    if (ftruncate(shm_fd, shm_size) < 0) {
+        syslog(LOG_ERR, "Failed to set the shm size to %ld", shm_size);
         exit(1);
     }
     // memory map the shm
-    this->shm_ptr = (char *) mmap(nullptr, SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    shm_ptr = (char *) mmap(nullptr, shm_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (shm_ptr == (void *) -1) {
         syslog(LOG_ERR, "Failed to memory map the shm with error %d", errno);
         exit(1);
     }
-    syslog(LOG_INFO, "Memory mapped shm to address %p", this->shm_ptr);
+    syslog(LOG_INFO, "Memory mapped shm to address %p", shm_ptr);
 }
 
 InProxy::~InProxy() {
     // close input message queue
-    if (mq_close(this->input_mq) != 0) {
+    if (mq_close(input_mq) != 0) {
         syslog(LOG_ERR, "Failed to close input message queue with error %d", errno);
     }
     // unmap the shm
-    if (munmap(this->shm_ptr, SHM_SIZE) != 0) {
+    if (munmap(shm_ptr, shm_size) != 0) {
         syslog(LOG_ERR, "Failed to memory unmap the shm with error %d", errno);
     }
     // close the shm
-    if (close(this->shm_fd) != 0) {
+    if (close(shm_fd) != 0) {
         syslog(LOG_ERR, "Failed to close shared memory with error %d", errno);
     }
 }
 
 int InProxy::send_input_file(const std::string &path) {
     FileMetadata md;
+    strncpy(md.name, path.c_str(), MD_STR_SIZE - 1);
 
     std::ifstream is(path);
     if (!is) {
@@ -57,14 +58,17 @@ int InProxy::send_input_file(const std::string &path) {
         return 1;
     }
 
-    strncpy(md.name, path.c_str(), MD_STR_SIZE - 1);
-    this->curr_offset = this->inf_offset;
-    this->write_file(is, md);
+    // check if we should wrap around and start writing back at the input file pointer
+    if (inf_curr_idx >= inf_wrap_idx) {
+        curr_offset = inf_offset;
+        inf_curr_idx = 0;
+    }
+    write_file(is, md);
+    inf_curr_idx += 1;
 
     // write the metadata as input to message queue using CSV format
     auto input_msg = metadata_to_string(md);
-
-    auto status = mq_send(this->input_mq, input_msg.c_str(), path.size(), 0);
+    auto status = mq_send(input_mq, input_msg.c_str(), path.size(), 0);
     if (status != 0) {
         syslog(LOG_ERR, "Failed to send message '%s' to input mq with error %d", input_msg.c_str(), errno);
         return 2;
@@ -79,7 +83,7 @@ void InProxy::write_policy_files(const std::vector<std::string> &paths) {
     auto md_total_size = (off_t) sizeof(md_count) + md_count * (off_t) sizeof(FileMetadata);
 
     // set some space to write the metadata to, advance offset to write after
-    this->curr_offset = md_total_size;
+    curr_offset = md_total_size;
 
     FileMetadata metadata[md_count];
 
@@ -99,20 +103,21 @@ void InProxy::write_policy_files(const std::vector<std::string> &paths) {
     }
 
     // copy metadata and size into the shm
-    std::memcpy(this->shm_ptr, &md_count, sizeof(md_count));
-    std::memcpy(this->shm_ptr + sizeof(md_count), metadata, sizeof(FileMetadata) * md_count);
+    std::memcpy(shm_ptr, &md_count, sizeof(md_count));
+    std::memcpy(shm_ptr + sizeof(md_count), metadata, sizeof(FileMetadata) * md_count);
 
     // set the inf offset at the end of the policy files
-    this->inf_offset = this->curr_offset;
+    inf_offset = curr_offset;
 }
 
 void InProxy::write_file(std::ifstream &is, FileMetadata &md) {
-    md.offset = this->curr_offset;
+    md.offset = curr_offset;
     md.size = 0;
 
     // copy the file from disk into shm buffer by buffer
     while (!is.eof()) {
-        is.read(this->shm_ptr + this->curr_offset, BUF_SIZE);
+        off_t start_offset = curr_offset;
+        is.read(shm_ptr + curr_offset, BUF_SIZE);
 
         if (is.fail() && !is.eof()) {
             syslog(LOG_ERR, "Failed to read buffer from file %s", md.name);
@@ -121,28 +126,28 @@ void InProxy::write_file(std::ifstream &is, FileMetadata &md) {
 
         // advance the offset and metadata counts
         auto count = is.gcount();
-        this->curr_offset += count;
+        curr_offset += count;
         md.size += count;
 
-        syslog(LOG_INFO, "Writing %ld bytes for filename %s into shm at offset %ld", count, md.name, this->curr_offset);
+        syslog(LOG_INFO, "Writing %ld bytes for filename %s into shm at offset %ld", count, md.name, start_offset);
     }
 }
 
 char *InProxy::get_md_ptr(off_t md_index) const {
-    return this->shm_ptr + sizeof(off_t) + sizeof(FileMetadata) * md_index;
+    return shm_ptr + sizeof(off_t) + sizeof(FileMetadata) * md_index;
 }
 
 void InProxy::debug_shm() const {
     off_t md_count;
-    std::memcpy(&md_count, this->shm_ptr, sizeof(md_count));
+    std::memcpy(&md_count, shm_ptr, sizeof(md_count));
 
     std::string md_log;
     FileMetadata metadata[md_count];
     for (int i = 0; i < md_count; i++) {
-        std::memcpy(&metadata[i], this->get_md_ptr(i), sizeof(FileMetadata));
+        std::memcpy(&metadata[i], get_md_ptr(i), sizeof(FileMetadata));
         md_log += metadata_to_string(metadata[i]) + " ";
     }
 
-    syslog(LOG_INFO, "%ld %s %s", md_count, md_log.c_str(), this->get_md_ptr(md_count));
+    syslog(LOG_INFO, "%ld %s %s", md_count, md_log.c_str(), get_md_ptr(md_count));
 }
 

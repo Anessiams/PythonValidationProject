@@ -11,25 +11,24 @@ YamlTree::YamlTree(const std::string &key, const std::string &value) {
 }
 
 YamlTree &YamlTree::operator[](const std::string &child_key) {
-    for (std::unique_ptr<YamlTree> &child: this->children) {
+    for (std::unique_ptr<YamlTree> &child: children) {
         if (child->get_key() == child_key) {
             return *child;
         }
     }
-    syslog(LOG_ERR, "Cannot find child_key %s in yaml tree with child_key %s", child_key.c_str(), this->key.c_str());
+    syslog(LOG_ERR, "Cannot find child_key %s in yaml tree with child_key %s", child_key.c_str(), key.c_str());
     exit(1);
 }
 
 std::string &YamlTree::get_key() {
-    return this->key;
+    return key;
 }
 
 std::string &YamlTree::get_value() {
-    return this->value;
+    return value;
 }
 
 std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
-
     // scan lines until one of them is valid
     bool scan = true;
     std::string line;
@@ -86,9 +85,9 @@ YamlTree &&load_yaml_file(const std::string &path) {
     return std::move(*tree);
 }
 
-Config get_config() {
+Config parse_config(const std::string &path) {
+//    auto yaml_tree = load_yaml_file(config_path);
     Config config;
-    config.validator_count = 1;
     config.policy_paths.emplace_back("../../test-policy");
     config.policy_paths.emplace_back("../../test-policy-1");
     return config;

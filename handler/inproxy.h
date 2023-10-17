@@ -4,30 +4,27 @@
 #include <vector>
 #include "metadata.h"
 
-// names for the shared resources
 #define INPUT_MQ_NAME "/filesunvalidated"
 #define SHM_NAME "/file-data"
-// the number of bytes to be read from a file at a given time
 #define BUF_SIZE 4096
-// the size of the shm - 4mb
-#define SHM_SIZE 4096000
 
 // a proxy class for the handler to communicate with input resources
 class InProxy {
 private:
-    // input queue
     const struct mq_attr in_attr = {
         .mq_flags = 0,
         .mq_maxmsg = 10,
-        .mq_msgsize = 4096,
+        .mq_msgsize = 128,
         .mq_curmsgs = 0,
     };
     mqd_t input_mq;
-    // shm for input files
     int shm_fd = 0;
+    const off_t shm_size = 409600;
     char *shm_ptr = nullptr;
-    off_t curr_offset = 0; // current write offset to shm
     off_t inf_offset = 0; // offset where input files begin (after policy files)
+    off_t curr_offset = 0; // current write offset to shm
+    long inf_curr_idx = 0; // the current input file index out of
+    const long inf_wrap_idx = in_attr.mq_maxmsg; // number of inf files before we start reusing shm
 public:
     InProxy();
 
