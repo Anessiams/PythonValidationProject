@@ -6,16 +6,16 @@ set(CMAKE_CXX_STANDARD 14)
 include_directories(handler)
 
 add_executable(PythonValidationProject
-        config.cpp
-        config.h
-        main.cpp
-        inproxy.cpp
-        inproxy.h
-        utils.h
-        outproxy.cpp
-        outproxy.h
-        metadata.h
-        runner.cpp
-        runner.h
+        src/config.cpp
+        src/config.h
+        src/main.cpp
+        src/inproxy.cpp
+        src/inproxy.h
+        src/utils.h
+        src/outproxy.cpp
+        src/outproxy.h
+        src/metadata.h
+        src/runner.cpp
+        src/runner.h
 )
 target_link_libraries(PythonValidationProject PUBLIC rt)

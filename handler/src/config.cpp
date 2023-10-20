@@ -88,7 +88,7 @@ YamlTree &&load_yaml_file(const std::string &path) {
 Config parse_config(const std::string &path) {
 //    auto yaml_tree = load_yaml_file(config_path);
     Config config;
-    config.policy_paths.emplace_back("../../test-policy");
-    config.policy_paths.emplace_back("../../test-policy-1");
+    config.policy_paths.emplace_back("../test-policy");
+    config.policy_paths.emplace_back("../test-policy-1");
     return config;
 }
