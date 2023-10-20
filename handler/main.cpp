@@ -17,6 +17,7 @@ void on_signal(int s) {
     if (shm_unlink(SHM_NAME)) {
         syslog(LOG_INFO, "Failed to unlink shm %s" ,SHM_NAME);
     }
+    exit(0);
 }
 
 [[noreturn]] int main(int argc, char **argv) {
@@ -40,6 +41,7 @@ void on_signal(int s) {
 
     in_proxy.write_policy_files(config.policy_paths);
     runner.run_many(config.child_count);
+
     // start the input loop to relay stdin and stdout to resources
     while (true) {
         in_proxy.debug_shm();
