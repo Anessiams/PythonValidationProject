@@ -23,8 +23,6 @@ private:
     char *shm_ptr = nullptr;
     off_t inf_offset = 0; // offset where input files begin (after policy files)
     off_t curr_offset = 0; // current write offset to shm
-    long inf_curr_idx = 0; // the current input file index out of
-    const long inf_wrap_idx = in_attr.mq_maxmsg; // number of inf files before we start reusing shm
 public:
     InProxy();
 

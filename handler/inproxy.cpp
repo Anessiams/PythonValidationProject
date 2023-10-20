@@ -58,13 +58,7 @@ int InProxy::send_input_file(const std::string &path) {
         return 1;
     }
 
-    // check if we should wrap around and start writing back at the input file pointer
-    if (inf_curr_idx >= inf_wrap_idx) {
-        curr_offset = inf_offset;
-        inf_curr_idx = 0;
-    }
     write_file(is, md);
-    inf_curr_idx += 1;
 
     // write the metadata as input to message queue using CSV format
     auto input_msg = metadata_to_string(md);
