@@ -1,14 +1,13 @@
 # IPC Library
 import posix_ipc as ipc
+
+# Imported modules
 import Logger as log
 
 # Message Queue descriptor.
 receiverMQ = None
 QUEUE_NAME = "/CppToPython"
 isValidQueue = False
-
-# Note: any print methods in this should be changed into a function
-# call to the logger module
 
 # Initializes the input message queue, and sets the isValidQueue
 # boolean if successful, sends an error message if the message queue
