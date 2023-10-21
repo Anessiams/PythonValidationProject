@@ -7,6 +7,7 @@
 #define INPUT_MQ_NAME "/filesunvalidated"
 #define SHM_NAME "/file-data"
 #define BUF_SIZE 4096
+#define SHM_SIZE 4096000
 
 // a proxy class for the handler to communicate with input resources
 class InProxy {
@@ -19,7 +20,6 @@ private:
     };
     mqd_t input_mq;
     int shm_fd = 0;
-    const off_t shm_size = 409600;
     char *shm_ptr = nullptr;
     off_t inf_offset = 0; // offset where input files begin (after policy files)
     off_t curr_offset = 0; // current write offset to shm

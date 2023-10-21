@@ -20,12 +20,12 @@ InProxy::InProxy() {
         exit(1);
     }
     // set the size for shm
-    if (ftruncate(shm_fd, shm_size) < 0) {
-        syslog(LOG_ERR, "Failed to set the shm size to %ld", shm_size);
+    if (ftruncate(shm_fd, SHM_SIZE) < 0) {
+        syslog(LOG_ERR, "Failed to set the shm size to %d", SHM_SIZE);
         exit(1);
     }
     // memory map the shm
-    shm_ptr = (char *) mmap(nullptr, shm_size, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
+    shm_ptr = (char *) mmap(nullptr, SHM_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0);
     if (shm_ptr == (void *) -1) {
         syslog(LOG_ERR, "Failed to memory map the shm with error %d", errno);
         exit(1);
@@ -39,7 +39,7 @@ InProxy::~InProxy() {
         syslog(LOG_ERR, "Failed to close input message queue with error %d", errno);
     }
     // unmap the shm
-    if (munmap(shm_ptr, shm_size) != 0) {
+    if (munmap(shm_ptr, SHM_SIZE) != 0) {
         syslog(LOG_ERR, "Failed to memory unmap the shm with error %d", errno);
     }
     // close the shm
@@ -49,8 +49,13 @@ InProxy::~InProxy() {
 }
 
 int InProxy::send_input_file(const std::string &path) {
+    if (path.length() > MD_STR_SIZE) {
+        syslog(LOG_ERR, "Length for input file path %ld must be less than %d", path.length(), MD_STR_SIZE);
+        return 1;
+    }
+
     FileMetadata md;
-    strncpy(md.name, path.c_str(), MD_STR_SIZE - 1);
+    strncpy(md.name, path.c_str(), MD_STR_SIZE);
 
     std::ifstream is(path);
     if (!is) {
