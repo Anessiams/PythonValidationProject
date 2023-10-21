@@ -5,6 +5,8 @@ import atexit
 # Internal modules
 import InputHandler as inq
 import OutputHandler as outq
+import SharedMemoryHandler as smh
+import SharedMemoryReader as reader
 import DataProcessor as processor
 import Cleanup
 
@@ -17,6 +19,16 @@ atexit.register(ProgramCleanup)
 signal.signal(signal.SIGTERM, ProgramCleanup)
 signal.signal(signal.SIGINT, ProgramCleanup)
 
+# Create the shared memory
+smh.InitializeSharedMemory()
+
+# Read the data validation policy from the shared memory
+# if we failed to create teh shared memory IPC, we exit the program
+if smh.isValidSharedMemory:
+    pass
+else:
+    exit(1)
+
 # Create message queues
 inq.InitializeQueue()
 outq.InitializeQueue()
@@ -28,6 +40,10 @@ while(inq.isValidQueue and outq.isValidQueue):
     inputMessage = inq.ReadMessageQueue()
     # inputMessage should only be None if we're ending the validator.
     if(inputMessage != None):
-        output = str(processor.ProcessMessage(inputMessage))
-        outq.SendMessage(output)
+        dataToValidate = reader.ReadInputFile(inputMessage)
+        if(dataToValidate == None):
+            exit(1)
+        else:
+            result = processor.ProcessMessage(dataToValidate)
+            outq.SendMessage(str(result))
 exit(0)

@@ -9,6 +9,9 @@ receiverMQ = None
 QUEUE_NAME = "/CppToPython"
 isValidQueue = False
 
+# Special ASCII characters
+NULL_TERMINATOR = chr(0)
+
 # Initializes the input message queue, and sets the isValidQueue
 # boolean if successful, sends an error message if the message queue
 # is not found
@@ -38,7 +41,7 @@ def ReadMessageQueue():
     # character used in C strings
     # Finally, we grab the first message, which is the full string
     # minus the null terminator
-        msg = msg.decode().split('\0')
+        msg = msg.decode().split(NULL_TERMINATOR)
         msg = msg[0]
         log.LogMessage("Received message: " + msg)
         return msg

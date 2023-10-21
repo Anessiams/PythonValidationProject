@@ -20,7 +20,7 @@ def InitializeSharedMemory():
     global isValidSharedMemory
     try:
         global sharedMemory
-        sharedMemory = ipc.SharedMemory(SHARED_MEMORY_NAME)
+        sharedMemory = ipc.SharedMemory(SHARED_MEMORY_NAME, read_only = True)
         isValidSharedMemory = True
     except ipc.ExistentialError:
         log.LogMessage("Shared message IPC not found! Has it not been created yet?")
