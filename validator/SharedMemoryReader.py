@@ -10,6 +10,14 @@ import ValidationPolicyReader as policyread
 def ReadPolicy():
     policyread.ReadFile(smh.mapFile)
 
+# Runs the input file reader module to parse and get the data in the specified
+# input file data message. This message contains the file name, offset in shared
+# memory in bytes, and the size of the input data in bytes
+# return the data in the input file, or None if the mmap mapped
+# to shared memory isn't valid.
 def ReadInputFile(inputFileData):
-    dataToValidate = inread.ReadFile(inputFileData, smh.mapFile)
-    return dataToValidate
+    if(smh.isValidMmap):
+        dataToValidate = inread.ReadFile(inputFileData, smh.mapFile)
+        return dataToValidate
+    else:
+        return None

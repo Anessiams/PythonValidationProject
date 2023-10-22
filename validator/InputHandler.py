@@ -29,7 +29,7 @@ def InitializeQueue():
 # prerequisite for calling this method.
 # If the process is killed by a signal, we make the queue not valid
 # so the runner program can end properly
-def ReadMessageQueue():
+def ReadMessageQueue() -> (str | None):
     try:
         # receive method returns a tuple of message and the priority
         # we store priority in a variable to make sure msg
@@ -44,7 +44,7 @@ def ReadMessageQueue():
         msg = msg.decode().split(NULL_TERMINATOR)
         msg = msg[0]
         log.LogMessage("Received message: " + msg)
-        return msg
+        return str(msg)
     except ipc.SignalError:
         global isValidQueue 
         isValidQueue = False

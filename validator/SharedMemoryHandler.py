@@ -2,7 +2,7 @@
 import posix_ipc as ipc
 
 # Other libraries
-import mmap
+import mmap as memorymap
 
 # Imported modules
 import Logger as log
@@ -29,7 +29,7 @@ def InitializeSharedMemory():
         # Mmap the shared memory
         global isValidMmap
         global mapFile
-        mapFile = mmap.mmap(sharedMemory.fd, sharedMemory.size)
+        mapFile = memorymap.mmap(sharedMemory.fd, sharedMemory.size)
         isValidMmap = True
 
 def CleanupSharedMemory():
