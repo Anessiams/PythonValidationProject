@@ -1,5 +1,6 @@
 import InputHandler as inq
 import OutputHandler as outq
+import SharedMemoryHandler as smh
 
 # This module will be used by the handler to close the IPC mechanasims
 # on the validator side so they can be properly unlinked when
@@ -12,3 +13,8 @@ import OutputHandler as outq
 def CloseQueues():
     inq.CleanupQueue()
     outq.CleanupQueue()
+
+# Close shared memory and related mmap and set isValidSharedMemory
+# and isValidMap to false
+def CloseSharedMemory():
+    smh.CleanupSharedMemory()

@@ -1,5 +1,7 @@
 # IPC Library
 import posix_ipc as ipc
+
+# Imported modules
 import Logger as log
 
 # Message Queue descriptor.
@@ -7,8 +9,8 @@ receiverMQ = None
 QUEUE_NAME = "/filesunvalidated"
 isValidQueue = False
 
-# Note: any print methods in this should be changed into a function
-# call to the logger module
+# Special ASCII characters
+NULL_TERMINATOR = chr(0)
 
 # Initializes the input message queue, and sets the isValidQueue
 # boolean if successful, sends an error message if the message queue
@@ -29,20 +31,24 @@ def InitializeQueue():
 # so the runner program can end properly
 def ReadMessageQueue():
     try:
+        if(isValidQueue):
         # receive method returns a tuple of message and the priority
         # we store priority in a variable to make sure msg
         # is stored as bytes
-        msg, priority = receiverMQ.receive()
+            msg, priority = receiverMQ.receive()
         # First we decods msg from bytes into a string
         # Second, to get the proper string length, we split the msg
     # into two parts, the string itself, and the null terminator
     # character used in C strings
     # Finally, we grab the first message, which is the full string
     # minus the null terminator
-        msg = msg.decode().split('\0')
-        msg = msg[0]
-        log.LogMessage("Received message: " + msg)
-        return msg
+            msg = msg.decode().split(NULL_TERMINATOR)
+            msg = msg[0]
+            log.LogMessage("Received message: " + msg)
+            return str(msg)
+        else:
+            log.LogMessage("Message queue is invalid!")
+            return None
     except ipc.SignalError:
         global isValidQueue 
         isValidQueue = False
