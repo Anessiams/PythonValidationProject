@@ -4,7 +4,8 @@ import Logger as log
 
 # Message queue descriptor and queue name
 senderMQ = None
-QUEUE_NAME = "/PythonToCpp"
+QUEUE_NAME = "/validatorresults"
+
 isValidQueue = False
 
 # Initializes the output message queue, and sets the isValidQueue

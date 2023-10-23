@@ -1,4 +1,5 @@
-/cmake-build-debug
+/handler/cmake-build-debug
+/validator/src/__pycache__
 .idea
-test-policy
-test-container
+test-policy*
+test-if*
