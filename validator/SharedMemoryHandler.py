@@ -12,6 +12,7 @@ import Logger as log
 SHARED_MEMORY_NAME = "ValidatorMemory"
 sharedMemory = None
 isValidSharedMemory = False
+
 mapFile = None
 isValidMmap = False
 
@@ -29,8 +30,14 @@ def InitializeSharedMemory():
         # Mmap the shared memory
         global isValidMmap
         global mapFile
-        mapFile = memorymap.mmap(sharedMemory.fd, sharedMemory.size)
-        isValidMmap = True
+        try:
+            mapFile = memorymap.mmap(sharedMemory.fd, sharedMemory.size)
+            isValidMmap = True
+        except:
+            log.LogMessage("mmap of shared memory creation failed!")
+            isValidMmap = False
+    else:
+        log.LogMessage("Shared memory is not valid!")
 
 def CleanupSharedMemory():
     global isValidMmap

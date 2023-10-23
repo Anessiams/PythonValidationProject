@@ -6,9 +6,16 @@
 import SharedMemoryHandler as smh
 import InputFileReader as inread
 import ValidationPolicyReader as policyread
+import Logger as log
 
 def ReadPolicy():
-    policyread.ReadFile(smh.mapFile)
+    if(smh.isValidSharedMemory):
+        if(smh.isValidMmap):
+            policyread.ReadFile(smh.mapFile)
+        else:
+            log.LogMessage("mmap file is not valid! Has it not been created yet?")
+    else:
+        log.LogMessage("Shared memory is not valid! Has it not been created yet?")
 
 # Runs the input file reader module to parse and get the data in the specified
 # input file data message. This message contains the file name, offset in shared
@@ -16,8 +23,13 @@ def ReadPolicy():
 # return the data in the input file, or None if the mmap mapped
 # to shared memory isn't valid.
 def ReadInputFile(inputFileData):
-    if(smh.isValidMmap):
-        dataToValidate = inread.ReadFile(inputFileData, smh.mapFile)
-        return dataToValidate
+    if(smh.isValidSharedMemory):
+        if(smh.isValidMmap):
+            dataToValidate = inread.ReadFile(inputFileData, smh.mapFile)
+            return dataToValidate
+        else:
+            log.LogMessage("mmap file is not valid! Has it not been created yet?")
+            return None
     else:
+        log.LogMessage("Shared memory is not valid! Has it not been created yet?")
         return None

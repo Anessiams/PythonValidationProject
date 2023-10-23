@@ -29,22 +29,26 @@ def InitializeQueue():
 # prerequisite for calling this method.
 # If the process is killed by a signal, we make the queue not valid
 # so the runner program can end properly
-def ReadMessageQueue() -> (str | None):
+def ReadMessageQueue():
     try:
+        if(isValidQueue):
         # receive method returns a tuple of message and the priority
         # we store priority in a variable to make sure msg
         # is stored as bytes
-        msg, priority = receiverMQ.receive()
+            msg, priority = receiverMQ.receive()
         # First we decods msg from bytes into a string
         # Second, to get the proper string length, we split the msg
     # into two parts, the string itself, and the null terminator
     # character used in C strings
     # Finally, we grab the first message, which is the full string
     # minus the null terminator
-        msg = msg.decode().split(NULL_TERMINATOR)
-        msg = msg[0]
-        log.LogMessage("Received message: " + msg)
-        return str(msg)
+            msg = msg.decode().split(NULL_TERMINATOR)
+            msg = msg[0]
+            log.LogMessage("Received message: " + msg)
+            return str(msg)
+        else:
+            log.LogMessage("Message queue is invalid!")
+            return None
     except ipc.SignalError:
         global isValidQueue 
         isValidQueue = False

@@ -29,6 +29,7 @@ def ReadFile(inputFile, mappedFile):
             dataToValidate.append(c) # Append the byte we read to the variable holding all the bytes we've read
         # Convert the byte array into a string using join with an empty character as the seperator.
         dataToValidate = ''.join([chr(c) for c in dataToValidate])
+        log.LogMessage("Sending data in " + inputFileTokens[0] + " to the validator")
         return dataToValidate
         
 

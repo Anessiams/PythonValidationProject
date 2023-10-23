@@ -13,4 +13,8 @@ import SharedMemoryHandler as smh
 def CloseQueues():
     inq.CleanupQueue()
     outq.CleanupQueue()
+
+# Close shared memory and related mmap and set isValidSharedMemory
+# and isValidMap to false
+def CloseSharedMemory():
     smh.CleanupSharedMemory()
