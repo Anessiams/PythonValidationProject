@@ -15,7 +15,7 @@ void on_signal(int s) {
         syslog(LOG_INFO, "Failed to unlink output queue %s", OUTPUT_MQ_NAME);
     }
     if (shm_unlink(SHM_NAME)) {
-        syslog(LOG_INFO, "Failed to unlink shm %s" ,SHM_NAME);
+        syslog(LOG_INFO, "Failed to unlink shm %s", SHM_NAME);
     }
     exit(0);
 }

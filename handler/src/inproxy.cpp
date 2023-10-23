@@ -72,7 +72,7 @@ int InProxy::send_input_file(const std::string &path) {
         syslog(LOG_ERR, "Failed to send message '%s' to input mq with error %d", input_msg.c_str(), errno);
         return 2;
     }
-    syslog(LOG_ERR, "Sent an input file %s to the input mq", path.c_str());
+    syslog(LOG_ERR, "Sent a message %s to the input mq", input_msg.c_str());
     return 0;
 }
 
