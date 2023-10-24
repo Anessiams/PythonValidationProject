@@ -43,7 +43,7 @@ def ParseInputMessage(messageToParse):
     # split our input message into the three sections seperated by the unit seperator character
     parsedMessage = messageToParse.split(UNIT_SEPERATOR)
     # if we split the string into more than three elements, it means that we encountered too many seperators
-    if(parsedMessage.len() != 3):
+    if(len(parsedMessage) != 3):
         log.LogMessage("Input message was in an invalid format, expected 3 tokens, got " + parsedMessage.len() + " instead.")
         parsedMessage = None
     return parsedMessage

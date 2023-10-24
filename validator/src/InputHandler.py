@@ -6,7 +6,7 @@ import Logger as log
 
 # Message Queue descriptor.
 receiverMQ = None
-QUEUE_NAME = "/filesunvalidated"
+QUEUE_NAME = "/file-data"
 isValidQueue = False
 
 # Special ASCII characters
