@@ -18,7 +18,7 @@ def ReadFile(inputFile, mappedFile):
         log.LogMessage("Reading input file: " + inputFileTokens[0])
         offset = int(inputFileTokens[1])
         # Seek the mmap based on the input file's offset
-        mappedFile.Seek(offset)
+        mappedFile.seek(offset)
         # Get the file size in bytes as an integer
         fileSize = int(inputFileTokens[2])
         # Create the byte array holding all the bytes read from the file
