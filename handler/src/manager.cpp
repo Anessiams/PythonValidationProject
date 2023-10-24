@@ -16,14 +16,11 @@ FileMetadata FileManager::reserve_file(const std::string &name, off_t size) {
     }
 
     // search for the first FreeBlock that can fit the file we want to allocate
-    FreeBlock* fb = nullptr;
-    for (auto &curr_fb : free_blocks) {
-        if (curr_fb.right_offset - curr_fb.left_offset > size) {
-            fb = &curr_fb;
-            break;
-        }
+    auto fb = free_blocks.begin();
+    for (; fb != free_blocks.end() && fb->right_offset - fb->left_offset > size; fb++) {
     }
-    if (fb == nullptr) {
+    // if we exhaust all elements (the iterator is at the end) we couldn't find a free block to use
+    if (fb == free_blocks.end()) {
         syslog(LOG_ERR, "Not enough shared memory to allocate a file to: cannot find FreeBlock large enough to fit the file");
     }
 
@@ -38,7 +35,7 @@ FileMetadata FileManager::reserve_file(const std::string &name, off_t size) {
 
     // remove a fb if it no longer has any space left
     if(fb->right_offset - fb->left_offset == 0) {
-        free_blocks.erase(free_blocks.begin());
+        free_blocks.erase(fb);
     }
 }
 

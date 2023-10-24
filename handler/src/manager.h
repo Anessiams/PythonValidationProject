@@ -9,6 +9,8 @@ struct FreeBlock {
     off_t right_offset;
 } typedef FreeBlock;
 
+typedef std::vector<FreeBlock>::iterator FreeBlockIterator;
+
 // keeps track of the named files stored in another block of memory such as a shared memory
 // doesn't actually write to the block of memory that this is used to keep track of, rather gives offsets used to calculate pointers
 class FileManager {
