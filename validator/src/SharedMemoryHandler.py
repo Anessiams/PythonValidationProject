@@ -33,7 +33,8 @@ def InitializeSharedMemory():
         try:
             mapFile = memorymap.mmap(sharedMemory.fd, sharedMemory.size)
             isValidMmap = True
-        except:
+        except Exception as e:
+            print(e)
             log.LogMessage("mmap of shared memory creation failed!")
             isValidMmap = False
     else:

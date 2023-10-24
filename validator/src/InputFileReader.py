@@ -18,7 +18,7 @@ def ReadFile(inputFile, mappedFile):
         log.LogMessage("Reading input file: " + inputFileTokens[0])
         offset = int(inputFileTokens[1])
         # Seek the mmap based on the input file's offset
-        mappedFile.Seek(offset)
+        mappedFile.seek(offset)
         # Get the file size in bytes as an integer
         fileSize = int(inputFileTokens[2])
         # Create the byte array holding all the bytes read from the file
@@ -43,7 +43,7 @@ def ParseInputMessage(messageToParse):
     # split our input message into the three sections seperated by the unit seperator character
     parsedMessage = messageToParse.split(UNIT_SEPERATOR)
     # if we split the string into more than three elements, it means that we encountered too many seperators
-    if(parsedMessage.len() != 3):
+    if(len(parsedMessage) != 3):
         log.LogMessage("Input message was in an invalid format, expected 3 tokens, got " + parsedMessage.len() + " instead.")
         parsedMessage = None
     return parsedMessage
