@@ -21,9 +21,10 @@ private:
 public:
     explicit FileManager(off_t);
 
-    // reserves an offset and size for a named object within the block of memory
+    // reserves an offset and size for a named file within the block of memory
     // actual writing to the offset and size must happen elsewhere
-    FileMetadata reserve_file(const std::string &name, off_t size);
+    // writes the metadata for a reserved file to the md argument and returns 0 for success 1 otherwise
+    int reserve_file(const std::string &name, off_t size, FileMetadata &md);
 
     // frees a region used for a named file by releasing free_file space and reference to the metadata
     // the freed region will NOT be zeroed out, but the offset range may appear in a subsequent reserve_file call
