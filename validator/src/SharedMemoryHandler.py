@@ -9,7 +9,7 @@ import Logger as log
 
 # This name should be changed to match the name of the shared memory
 # as defined by the handler
-SHARED_MEMORY_NAME = "ValidatorMemory"
+SHARED_MEMORY_NAME = "file-data"
 sharedMemory = None
 isValidSharedMemory = False
 
@@ -31,7 +31,7 @@ def InitializeSharedMemory():
         global isValidMmap
         global mapFile
         try:
-            mapFile = memorymap.mmap(sharedMemory.fd, sharedMemory.size)
+            mapFile = memorymap.mmap(sharedMemory.fd, sharedMemory.size, prot=memorymap.PROT_READ)
             isValidMmap = True
         except Exception as e:
             print(e)
