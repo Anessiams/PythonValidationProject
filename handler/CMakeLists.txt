@@ -17,5 +17,6 @@ add_executable(PythonValidationProject
         src/metadata.h
         src/runner.cpp
         src/runner.h
+        src/manager.cpp
 )
 target_link_libraries(PythonValidationProject PUBLIC rt)
