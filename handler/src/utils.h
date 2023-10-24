@@ -10,3 +10,11 @@ inline std::string trim(std::string &str) {
 inline std::string trim(std::string &&str) {
     return trim(str);
 }
+
+inline void find_and_replace(std::string &str, char find, char replace) {
+    for (char &i : str) {
+        if (i == find) {
+            i = replace;
+        }
+    }
+}

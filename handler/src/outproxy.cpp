@@ -27,7 +27,7 @@ int OutProxy::receive_output(std::string &output) const {
     ssize_t recv_len = mq_receive(output_mq, msg, out_attr.mq_msgsize, nullptr);
     if (recv_len < 0) {
         syslog(LOG_ERR, "Failed to recv from output mq with error %d", errno);
-        return 2;
+        return 1;
     }
 
     output = msg;

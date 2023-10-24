@@ -1,4 +1,5 @@
 #include "inproxy.h"
+#include "utils.h"
 #include <syslog.h>
 #include <fstream>
 #include <csignal>
@@ -67,12 +68,13 @@ int InProxy::send_input_file(const std::string &path) {
 
     // write the metadata as input to message queue using CSV format
     auto input_msg = metadata_to_string(md);
-    auto status = mq_send(input_mq, input_msg.c_str(), path.size(), 0);
+    auto status = mq_send(input_mq, input_msg.c_str(), input_msg.size(), 0);
+    find_and_replace(input_msg, FLD_DL, ' ');
     if (status != 0) {
-        syslog(LOG_ERR, "Failed to send message '%s' to input mq with error %d", input_msg.c_str(), errno);
-        return 2;
+        syslog(LOG_ERR, "Failed to send message %s to input mq with error %d", input_msg.c_str(), errno);
+        return 1;
     }
-    syslog(LOG_ERR, "Sent a message %s to the input mq", input_msg.c_str());
+    syslog(LOG_INFO, "Sent a message %s to the input mq", input_msg.c_str());
     return 0;
 }
 
