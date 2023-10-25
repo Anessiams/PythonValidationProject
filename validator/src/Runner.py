@@ -74,9 +74,9 @@ while (inq.isValidQueue and outq.isValidQueue):
             logger.info('Ending Validation process')
             exit(1)
         else:
-            result = processor.ProcessMessage(dataToValidate)
+            result = processor.ProcessMessage(dataToValidate[1])
             logger.debug(f'Validator result: {result}')
-            outq.SendMessage(str(result))
+            outq.SendMessage(dataToValidate[0] + chr(31) + str(result))
             logger.debug('message sent to output')
 
 logger.info('Ending Program')

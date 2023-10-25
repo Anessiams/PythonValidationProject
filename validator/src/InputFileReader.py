@@ -53,7 +53,8 @@ def ReadFile(inputFile, mappedFile):
         logger.debug(f'Final byte array: {dataToValidate}')
         logger.info(f'Process ReadFile Successful, 
                     Sending data in {inputFileTokens[0]} to the validator')
-        return dataToValidate
+        inputFileAndData = [inputFileTokens[0], dataToValidate]
+        return inputFileAndData
 
 
 # Parse the input message into the input file name, offset, and size
