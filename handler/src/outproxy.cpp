@@ -3,6 +3,7 @@
 #include <cerrno>
 #include <string>
 #include "outproxy.h"
+#include "utils.h"
 
 OutProxy::OutProxy() {
     output_mq = mq_open(OUTPUT_MQ_NAME, O_RDONLY | O_CREAT, 0666, &out_attr);
@@ -34,4 +35,15 @@ int OutProxy::receive_output(std::string &output) const {
 
     syslog(LOG_INFO, "Recv message of length %ld from output mq", recv_len);
     return 0;
+}
+
+std::string OutProxy::parse_name(std::string &output) {
+    std::string name;
+    for (auto c : output) {
+        if (c == OUT_DL) {
+            break;
+        }
+        name += c;
+    }
+    return name;
 }

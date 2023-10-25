@@ -1,3 +1,6 @@
+#ifndef CONFIG_H_
+#define CONFIG_H_
+
 #include <vector>
 #include <memory>
 #include <string>
@@ -9,10 +12,6 @@ struct Config {
 };
 
 class YamlTree {
-private:
-    std::vector<std::unique_ptr<YamlTree>> children;
-    std::string key;
-    std::string value;
 public:
     YamlTree(const std::string &, const std::string &);
 
@@ -24,6 +23,10 @@ public:
 
     // get the value stored at this node
     std::string &get_value();
+private:
+    std::vector<std::unique_ptr<YamlTree>> children;
+    std::string key;
+    std::string value;
 };
 
 // parses the config file into a yaml tree
@@ -31,3 +34,5 @@ YamlTree &&load_yaml_file(const std::string &);
 
 // converts the config file to a config struct
 Config parse_config(const std::string &);
+
+#endif
