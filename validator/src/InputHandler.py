@@ -60,8 +60,7 @@ def ReadMessageQueue():
     # minus the null terminator
             msg = msg.decode().split(NULL_TERMINATOR)
             msg = msg[0]
-            logger.info(f'Process ReadMessageQueue Successful, 
-                        Received message: {str(msg)}')
+            logger.info(f'Process ReadMessageQueue Successful, Received message: {str(msg)}')
             return str(msg)
         else:
             logger.error('Message queue is invalid!')

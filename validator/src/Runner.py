@@ -44,12 +44,10 @@ if (smh.isValidSharedMemory):
         logger.debug('mmap is valid')
         pass
     else:
-        logger.error(
-            'mmap of shared memory invalid, check if it was created. Exititing program')
+        logger.error('mmap of shared memory invalid, check if it was created. Exititing program')
         exit(1)
 else:
-    logger.error(
-        'Shared memory invalid, check if it was created. Exititing program')
+    logger.error('Shared memory invalid, check if it was created. Exititing program')
     exit(1)
 
 # Create message queues

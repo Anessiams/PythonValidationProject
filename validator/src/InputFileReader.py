@@ -51,8 +51,7 @@ def ReadFile(inputFile, mappedFile):
         # Convert the byte array into a string using join with an empty character as the seperator.
         dataToValidate = ''.join([chr(c) for c in dataToValidate])
         logger.debug(f'Final byte array: {dataToValidate}')
-        logger.info(f'Process ReadFile Successful, 
-                    Sending data in {inputFileTokens[0]} to the validator')
+        logger.info(f'Process ReadFile Successful, Sending data in {inputFileTokens[0]} to the validator')
         inputFileAndData = [inputFileTokens[0], dataToValidate]
         return inputFileAndData
 

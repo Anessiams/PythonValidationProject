@@ -29,8 +29,7 @@ def InitializeQueue():
         logger.debug(f'isValidQueue set to {isValidQueue}')
 
     except ipc.ExistentialError:
-        logger.error(
-            'Output message Queue not found! Has it not been made yet?')
+        logger.error('Output message Queue not found! Has it not been made yet?')
         isValidQueue = False
         logger.debug(f'isValidQueue set to {isValidQueue}')
 
