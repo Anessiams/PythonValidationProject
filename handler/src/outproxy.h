@@ -2,6 +2,7 @@
 #include <mqueue.h>
 
 #define OUTPUT_MQ_NAME "/validatorresults"
+#define OUT_DL '\037'
 
 // a proxy class for the handler to communicate with output resources
 class OutProxy {

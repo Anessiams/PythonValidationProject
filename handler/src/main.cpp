@@ -5,6 +5,7 @@
 #include "inproxy.h"
 #include "outproxy.h"
 #include "runner.h"
+#include "utils.h"
 
 void on_signal(int s) {
     syslog(LOG_INFO, "Handler received a shutdown signal %d", s);
@@ -59,6 +60,7 @@ void on_signal(int s) {
             continue;
         }
 
+        find_and_replace(output, OUT_DL, ' ');
         std::cout << output;
     }
 }
