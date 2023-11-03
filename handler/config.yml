@@ -1,5 +1,5 @@
 ---
 # Configuration yaml file
 validator:
-  container: path
+  container: /home/joseph/Documents/GitHub/PythonValidationProjectMerge/handler/test-policy
   policy: path

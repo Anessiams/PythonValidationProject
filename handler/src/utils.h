@@ -3,6 +3,9 @@
 
 #include <string>
 #include <vector>
+#include <vector>
+#include <limits>
+#include <istream>
 
 #define PATTERN " \t\f\v\n\r"
 
@@ -35,6 +38,14 @@ inline std::vector<std::string> tokenize(std::string &str, char delimiter) {
         }
     }
     return tokens;
+}
+
+inline std::streamsize is_size(std::istream &is) {
+    is.ignore(std::numeric_limits<std::streamsize>::max());
+    std::streamsize length = is.gcount();
+    is.clear(); // clears eof
+    is.seekg(0, std::ios_base::beg);
+    return length;
 }
 
 #endif
