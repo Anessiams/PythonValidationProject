@@ -1,13 +1,16 @@
-#include <config.h>
+#include "config.h"
 #include <fstream>
 #include <syslog.h>
-#include <utils.h>
+#include "utils.h"
 #include <stack>
 #include <memory>
 #include <utility>
 
-YamlTree::YamlTree(std::string key, std::string value)
-        : key(std::move(key)), value(std::move(value)) {}  // Using initializer list
+YamlTree::YamlTree(std::string key, std::string value): key(std::move(key)), value(std::move(value)) {}
+
+void YamlTree::add_child(std::unique_ptr<YamlTree> &child) {
+    children.push_back(std::move(child));
+}
 
 YamlTree &YamlTree::operator[](const std::string &child_key) {
     for (auto &child: children) {
@@ -16,7 +19,6 @@ YamlTree &YamlTree::operator[](const std::string &child_key) {
         }
     }
     syslog(LOG_ERR, "Cannot find child_key %s in yaml tree with child_key %s", child_key.c_str(), key.c_str());
-    // Instead of exiting, return a dummy YamlTree with empty values
     static YamlTree dummy("", "");
     return dummy;
 }
@@ -29,6 +31,11 @@ std::string &YamlTree::get_key() {
 std::string &YamlTree::get_value() {
     return value;
 }
+
+std::vector<std::unique_ptr<YamlTree>> &YamlTree::get_children() {
+    return children;
+}
+
 
 std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
     std::stack<YamlTree*> nodes;
@@ -48,18 +55,18 @@ std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
         auto node = std::make_unique<YamlTree>("", tr_line);
 
         if (indentation.size() > prevIndentation.size()) {
-            nodes.top()->children.push_back(std::move(node));
-            nodes.push(nodes.top()->children.back().get());
+            nodes.top()->add_child(node);
+            nodes.push(nodes.top()->get_children().back().get());
         } else {
             while (nodes.size() > indentation.size() / 2) {  // Assuming 2 spaces per level
                 nodes.pop();
             }
             if (nodes.empty()) {
-                tree->children.push_back(std::move(node));
-                nodes.push(tree->children.back().get());
+                tree->add_child(node);
+                nodes.push(tree->get_children().back().get());
             } else {
-                nodes.top()->children.push_back(std::move(node));
-                nodes.push(nodes.top()->children.back().get());
+                nodes.top()->add_child(node);
+                nodes.push(nodes.top()->get_children().back().get());
             }
         }
         prevIndentation = indentation;
@@ -67,7 +74,7 @@ std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
     return tree;
 }
 
-std::unique_ptr<YamlTree> load_yaml_file(const std::string &path) {  // Return type changed
+std::unique_ptr<YamlTree> load_yaml_file(const std::string &path) {
     std::ifstream is(path);
     if (!is) {
         syslog(LOG_ERR, "Cannot open yaml file with path %s", path.c_str());
@@ -86,7 +93,10 @@ std::unique_ptr<YamlTree> load_yaml_file(const std::string &path) {  // Return t
 }
 
 Config parse_config(const std::string &path) {
+    auto tree = load_yaml_file(path);
+
     Config config;
+//    config.container_path = (*tree)["container"].get_value();
     config.policy_paths.emplace_back("../test-policy");
     config.policy_paths.emplace_back("../test-policy-1");
     return config;

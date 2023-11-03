@@ -1,7 +1,9 @@
+#ifndef RUNNER_H_
+#define RUNNER_H_
+
 #include <string>
 
 class ValidatorRunner {
-    std::string &container_path;
 public:
     explicit ValidatorRunner(std::string &);
 
@@ -13,4 +15,8 @@ public:
 
     // stop all validator processes and instruct them to clean-up
     void stop_all();
+private:
+    std::string &container_path;
 };
+
+#endif

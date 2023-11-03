@@ -36,11 +36,9 @@ void on_signal(int s) {
     syslog(LOG_INFO, "Running handler for config file %s", config_path);
     auto config = parse_config(config_path);
 
-    InProxy in_proxy;
+    InProxy in_proxy(config.policy_paths);
     OutProxy out_proxy;
     ValidatorRunner runner(config.container_path);
-
-    in_proxy.write_policy_files(config.policy_paths);
     runner.run_many(config.child_count);
 
     // start the input loop to relay stdin and stdout to resources

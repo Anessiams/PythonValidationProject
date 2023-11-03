@@ -1,6 +1,7 @@
 #include "config.h"
 #include <iostream>
 #include <fstream>
+
 int main() {
     try {
         std::cout << "Starting the program" << std::endl;

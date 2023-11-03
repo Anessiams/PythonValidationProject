@@ -5,7 +5,7 @@
 #include <csignal>
 #include <cstring>
 
-InProxy::InProxy() {
+InProxy::InProxy(const std::vector<std::string> &paths) {
     // opening up the input queue
     input_mq = mq_open(INPUT_MQ_NAME, O_WRONLY | O_CREAT, 0666, &in_attr);
     syslog(LOG_INFO, "Opened input mq with attr maxmsg %ld and msgsize %ld", in_attr.mq_maxmsg, in_attr.mq_msgsize);
@@ -32,6 +32,9 @@ InProxy::InProxy() {
         exit(1);
     }
     syslog(LOG_INFO, "Memory mapped shm to address %p", shm_ptr);
+
+    // write the policy files after ipc mechanisms are set up
+    write_policy_files(paths);
 }
 
 InProxy::~InProxy() {
@@ -64,7 +67,9 @@ int InProxy::send_input_file(const std::string &path) {
         return 1;
     }
 
-    write_file(is, md);
+    if (write_file(md) != 0) {
+        return 1;
+    }
 
     // write the metadata as input to message queue using CSV format
     auto input_msg = metadata_to_string(md);
@@ -100,7 +105,9 @@ void InProxy::write_policy_files(const std::vector<std::string> &paths) {
         }
 
         strncpy(md.name, path.c_str(), MD_STR_SIZE - 1);
-        write_file(is, md);
+        if (write_file(md) != 0) {
+            exit(1);
+        }
     }
 
     // copy metadata and size into the shm
@@ -111,14 +118,34 @@ void InProxy::write_policy_files(const std::vector<std::string> &paths) {
     inf_offset = curr_offset;
 }
 
-void InProxy::write_file(std::ifstream &is, FileMetadata &md) {
+int InProxy::write_file(FileMetadata &md) {
+    std::ifstream is(md.name);
+    if (!is) {
+        syslog(LOG_ERR, "Cannot open file at path %s", md.name);
+        return 1;
+    }
+
+    syslog(LOG_INFO, "Writing filename %s of size %ld into shm at offset %ld", md.name, md.size, md.offset);
+
+    auto file_size = is_size(is);
+    auto remaining_inf_size = SHM_SIZE - curr_offset;
+    auto total_inf_size = SHM_SIZE - inf_offset;;
+    if (file_size > total_inf_size) {
+        syslog(LOG_ERR, "File %s is too big to fit in shared memory", md.name);
+        return 1;
+    } else if (file_size > remaining_inf_size) {
+        // file doesn't fit in remaining space but fits in total space, so reset
+        curr_offset = inf_offset;
+    }
+
     md.offset = curr_offset;
     md.size = 0;
 
     // copy the file from disk into shm buffer by buffer
+    off_t write_offset = curr_offset;
     while (!is.eof()) {
         off_t start_offset = curr_offset;
-        is.read(shm_ptr + curr_offset, BUF_SIZE);
+        is.read(shm_ptr + write_offset, BUF_SIZE);
 
         if (is.fail() && !is.eof()) {
             syslog(LOG_ERR, "Failed to read buffer from file %s", md.name);
@@ -127,28 +154,29 @@ void InProxy::write_file(std::ifstream &is, FileMetadata &md) {
 
         // advance the offset and metadata counts
         auto count = is.gcount();
-        curr_offset += count;
+        write_offset += count;
         md.size += count;
 
         syslog(LOG_INFO, "Writing %ld bytes for filename %s into shm at offset %ld", count, md.name, start_offset);
     }
-}
 
-char *InProxy::get_md_ptr(off_t md_index) const {
-    return shm_ptr + sizeof(off_t) + sizeof(FileMetadata) * md_index;
+    curr_offset = write_offset;
+    return 0;
 }
 
 void InProxy::debug_shm() const {
     off_t md_count;
     std::memcpy(&md_count, shm_ptr, sizeof(md_count));
 
-    std::string md_log;
+    std::string md_string;
     FileMetadata metadata[md_count];
     for (int i = 0; i < md_count; i++) {
-        std::memcpy(&metadata[i], get_md_ptr(i), sizeof(FileMetadata));
-        md_log += metadata_to_string(metadata[i]) + " ";
+        auto shm_md_ptr = shm_ptr + sizeof(off_t) + sizeof(FileMetadata) * i;
+        std::memcpy(&metadata[i], shm_md_ptr, sizeof(FileMetadata));
+        md_string += metadata_to_string(metadata[i]) + " ";
     }
 
-    syslog(LOG_INFO, "%ld %s %s", md_count, md_log.c_str(), get_md_ptr(md_count));
+    // format the message to be written to syslog for debugging and log it
+    find_and_replace(md_string, FLD_DL, ' ');
+    syslog(LOG_INFO, "%ld %s %s", md_count, md_string.c_str(), shm_ptr + inf_offset);
 }
-
