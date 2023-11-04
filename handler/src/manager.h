@@ -24,7 +24,7 @@ public:
 
     // frees a region used for a named file by releasing free space and reference to the metadata
     // the freed region will NOT be zeroed out, but the offset range may appear in a subsequent reserve_file call
-    void free_file(const std::string &name);
+    int free_file(const std::string &name);
 private:
     std::unordered_map<std::string, FileMetadata> files; // the files currently in the memory
     std::vector<FreeBlock> free_blocks; // data structure to store the free memory space to allocate efficiently

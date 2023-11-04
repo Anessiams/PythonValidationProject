@@ -58,7 +58,7 @@ void on_signal(int s) {
         }
 
         auto name = OutProxy::parse_name(output);
-        in_proxy.finish_input_file(name);
+        in_proxy.cleanup_input_file(name);
 
         std::cout << output;
     }

@@ -59,12 +59,22 @@ int InProxy::send_input_file(const std::string &path) {
         return 1;
     }
 
+    // the stream we use to determine the size for manager allocation is the same one use for reading the file
+    std::ifstream is(path);
+    if (!is) {
+        syslog(LOG_ERR, "Cannot open file at path %s", path.c_str());
+        return 1;
+    }
+
     FileMetadata md;
     strncpy(md.name, path.c_str(), MD_STR_SIZE);
-    md.size = 0;
+    md.size = stream_size(is);
 
     manager->reserve_file(md);
-    write_file(md);
+
+    if (write_file(is, md) != 0) {
+        return 1;
+    }
 
     // write the metadata as input to message queue using CSV format
     auto input_msg = metadata_to_string(md);
@@ -95,11 +105,17 @@ void InProxy::write_policy_files(const std::vector<std::string> &paths) {
         auto &path = paths[i];
         auto &md = metadata[i];
 
-        strncpy(md.name, path.c_str(), MD_STR_SIZE);
-        md.offset = curr_offset;
-        md.size = 0;
+        std::ifstream is(path);
+        if (!is) {
+            syslog(LOG_ERR, "Cannot open file at path %s", path.c_str());
+            exit(1);
+        }
 
-        if (write_file(md) != 0) {
+        strncpy(md.name, path.c_str(), MD_STR_SIZE);
+        md.size = stream_size(is);
+        md.offset = curr_offset;
+
+        if (write_file(is, md) != 0) {
             exit(1);
         }
     }
@@ -111,13 +127,7 @@ void InProxy::write_policy_files(const std::vector<std::string> &paths) {
     inf_offset = curr_offset;
 }
 
-int InProxy::write_file(const FileMetadata &md) {
-    std::ifstream is(md.name);
-    if (!is) {
-        syslog(LOG_ERR, "Cannot open file at path %s", md.name);
-        return 1;
-    }
-
+int InProxy::write_file(std::ifstream &is, const FileMetadata &md) {
     syslog(LOG_INFO, "Writing filename %s of size %ld into shm at offset %ld", md.name, md.size, md.offset);
 
     auto curr_offset = md.offset;
@@ -147,7 +157,7 @@ int InProxy::write_file(const FileMetadata &md) {
     return 0;
 }
 
-void InProxy::finish_input_file(const std::string &name) {
+void InProxy::cleanup_input_file(const std::string &name) {
     manager->free_file(name);
 }
 

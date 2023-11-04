@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.26)
 project(PythonValidationProject)
+project(PythonValidationProjectTestManager)
+project(PythonValidationProjectTestConfig)
 
 set(CMAKE_CXX_STANDARD 14)
 
@@ -20,4 +22,18 @@ add_executable(PythonValidationProject
         src/manager.cpp
         src/manager.h
 )
+
+add_executable(PythonValidationProjectTestManager
+        src/manager.cpp
+        src/manager.h
+        src/manager.test.cpp
+        src/utils.h
+)
+
+add_executable(PythonValidationProjectTestConfig
+        src/config.cpp
+        src/config.h
+        src/config.test.cpp
+)
+
 target_link_libraries(PythonValidationProject PUBLIC rt)

@@ -3,7 +3,6 @@
 #include <cerrno>
 #include <string>
 #include "outproxy.h"
-#include "utils.h"
 
 OutProxy::OutProxy() {
     output_mq = mq_open(OUTPUT_MQ_NAME, O_RDONLY | O_CREAT, 0666, &out_attr);

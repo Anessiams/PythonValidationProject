@@ -26,26 +26,19 @@ inline void find_and_replace(std::string &str, char find, char replace) {
     }
 }
 
-inline std::vector<std::string> tokenize(std::string &str, char delimiter) {
-    std::vector<std::string> tokens;
-    std::string token;
-    for (auto c : str) {
-        if (c == delimiter) {
-            tokens.emplace_back(token);
-            token = "";
-        } else {
-            token += c;
-        }
-    }
-    return tokens;
-}
-
-inline std::streamsize is_size(std::istream &is) {
+inline std::streamsize stream_size(std::istream &is) {
     is.ignore(std::numeric_limits<std::streamsize>::max());
     std::streamsize length = is.gcount();
     is.clear(); // clears eof
     is.seekg(0, std::ios_base::beg);
     return length;
+}
+
+inline void expectToBe(const std::string& actual, const std::string& expected) {
+    if (actual != expected) {
+        printf("\nExpected %s, got %s", expected.c_str(), actual.c_str());
+        exit(1);
+    }
 }
 
 #endif

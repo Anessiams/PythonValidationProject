@@ -23,13 +23,13 @@ public:
 
     // writes an input file to the pool of shared memory using the metadata argument, returns 0 if successful
     // when the md size is different from the actual file size, the smaller value is used
-    int write_file(const FileMetadata &);
+    int write_file(std::ifstream &, const FileMetadata &);
 
     // sends an input file to the mq, returns 0 if successful
     int send_input_file(const std::string &);
 
     // informs that caller is done using an input file so resources can be freed
-    void finish_input_file(const std::string &);
+    void cleanup_input_file(const std::string &name);
 
     // debug shm by logging contents of policy metadata headers and files to syslog
     void debug_shm() const;
