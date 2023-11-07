@@ -116,6 +116,7 @@ void InProxy::write_policy_files(const std::vector<std::string> &paths) {
 
     // set the inf offset at the end of the policy files
     inf_offset = curr_offset;
+    syslog(LOG_INFO, "Set input file offset to %ld", inf_offset);
 }
 
 int InProxy::write_file(FileMetadata &md) {
@@ -124,8 +125,6 @@ int InProxy::write_file(FileMetadata &md) {
         syslog(LOG_ERR, "Cannot open file at path %s", md.name);
         return 1;
     }
-
-    syslog(LOG_INFO, "Writing filename %s of size %ld into shm at offset %ld", md.name, md.size, md.offset);
 
     auto file_size = is_size(is);
     auto remaining_inf_size = SHM_SIZE - curr_offset;
@@ -140,6 +139,8 @@ int InProxy::write_file(FileMetadata &md) {
 
     md.offset = curr_offset;
     md.size = 0;
+
+    syslog(LOG_INFO, "Writing filename %s of size %ld into shm at offset %ld", md.name, md.size, md.offset);
 
     // copy the file from disk into shm buffer by buffer
     off_t write_offset = curr_offset;
@@ -156,8 +157,6 @@ int InProxy::write_file(FileMetadata &md) {
         auto count = is.gcount();
         write_offset += count;
         md.size += count;
-
-        syslog(LOG_INFO, "Writing %ld bytes for filename %s into shm at offset %ld", count, md.name, start_offset);
     }
 
     curr_offset = write_offset;
@@ -176,7 +175,10 @@ void InProxy::debug_shm() const {
         md_string += metadata_to_string(metadata[i]) + " ";
     }
 
+    syslog(LOG_INFO, "Debugging for input file offset %ld", inf_offset);
+
     // format the message to be written to syslog for debugging and log it
     find_and_replace(md_string, FLD_DL, ' ');
-    syslog(LOG_INFO, "%ld %s %s", md_count, md_string.c_str(), shm_ptr + inf_offset);
+    auto shm_md_ptr = shm_ptr + sizeof(off_t) + sizeof(FileMetadata) * md_count;
+    syslog(LOG_INFO, "%ld %s %s", md_count, md_string.c_str(), shm_md_ptr);
 }

@@ -7,7 +7,7 @@ int main() {
         std::cout << "Starting the program" << std::endl;
 
         std::cout << "Loading YAML file..." << std::endl;
-        auto tree = load_yaml_file("test.yaml");
+        auto tree = load_yaml_file("../test.yaml");
         std::cout << "YAML file loaded successfully" << std::endl;
 
         std::cout << "Opening output file..." << std::endl;
@@ -63,7 +63,7 @@ int main() {
         outputFile.close();
         std::cout << "Output file closed" << std::endl;
 
-        std::cout << "Values written to output.txt in /home/alan/PythonValidationProject/handler/" << std::endl;
+        std::cout << "Values written to output.txt" << std::endl;
 
     } catch (const std::exception &e) {
         std::cerr << "Exception: " << e.what() << std::endl;

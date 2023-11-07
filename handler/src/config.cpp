@@ -36,7 +36,6 @@ std::vector<std::unique_ptr<YamlTree>> &YamlTree::get_children() {
     return children;
 }
 
-
 std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
     std::stack<YamlTree*> nodes;
     std::string prevIndentation;
@@ -53,7 +52,7 @@ std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
         std::string indentation(line.size() - tr_line.size(), ' ');
 
         // Extract key and value from the line
-        size_t delimiter_pos = tr_line.find(":");
+        size_t delimiter_pos = tr_line.find(':');
         if (delimiter_pos == std::string::npos) {
             // Handle error - malformed YAML line
             continue;
@@ -106,8 +105,17 @@ Config parse_config(const std::string &path) {
     auto tree = load_yaml_file(path);
 
     Config config;
-//    config.container_path = (*tree)["container"].get_value();
-    config.policy_paths.emplace_back("../test-policy");
-    config.policy_paths.emplace_back("../test-policy-1");
+    config.container_path = (*tree)["validator"]["container"].get_value();
+    syslog(LOG_INFO, "Container path in config %s", config.container_path.c_str());
+
+    std::string policy_files;
+    auto &policy_files_tree = (*tree)["validator"]["policies"];
+    auto &policy_files_children  = policy_files_tree.get_children();
+    for (auto &p : policy_files_children) {
+        config.policy_paths.push_back(p->get_value());
+        policy_files += p->get_value() + " ";
+    }
+    syslog(LOG_INFO, "Policy path in config %s", policy_files.c_str());
+
     return config;
 }
