@@ -35,3 +35,14 @@ int OutProxy::receive_output(std::string &output) const {
     syslog(LOG_INFO, "Recv message of length %ld from output mq", recv_len);
     return 0;
 }
+
+std::string OutProxy::parse_name(std::string &output) {
+    std::string name;
+    for (auto c : output) {
+        if (c == OUT_DL) {
+            break;
+        }
+        name += c;
+    }
+    return name;
+}

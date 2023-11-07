@@ -16,6 +16,9 @@ public:
 
     // receives output from the mq and puts it into a string, blocking if there is no output, returns 0 if successful
     int receive_output(std::string &) const;
+
+    // gets the name of the file from the output
+    static std::string parse_name(std::string &output) ;
 private:
     const struct mq_attr out_attr = {
         .mq_flags = 0,

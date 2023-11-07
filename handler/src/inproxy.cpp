@@ -5,7 +5,7 @@
 #include <csignal>
 #include <cstring>
 
-InProxy::InProxy(const std::vector<std::string> &paths) {
+InProxy::InProxy(const std::vector<std::string> &policy_paths) {
     // opening up the input queue
     input_mq = mq_open(INPUT_MQ_NAME, O_WRONLY | O_CREAT, 0666, &in_attr);
     syslog(LOG_INFO, "Opened input mq with attr maxmsg %ld and msgsize %ld", in_attr.mq_maxmsg, in_attr.mq_msgsize);
@@ -32,9 +32,10 @@ InProxy::InProxy(const std::vector<std::string> &paths) {
         exit(1);
     }
     syslog(LOG_INFO, "Memory mapped shm to address %p", shm_ptr);
-
-    // write the policy files after ipc mechanisms are set up
-    write_policy_files(paths);
+    // write policy files to the shared memory as part of initialization
+    write_policy_files(policy_paths);
+    // initialize the input files manager
+    manager = std::make_unique<FileManager>(inf_offset, SHM_SIZE);
 }
 
 InProxy::~InProxy() {
@@ -58,22 +59,28 @@ int InProxy::send_input_file(const std::string &path) {
         return 1;
     }
 
-    FileMetadata md;
-    strncpy(md.name, path.c_str(), MD_STR_SIZE);
-
+    // the stream we use to determine the size for manager allocation is the same one use for reading the file
     std::ifstream is(path);
     if (!is) {
-        syslog(LOG_ERR, "Cannot open input file at path %s", path.c_str());
+        syslog(LOG_ERR, "Cannot open file at path %s", path.c_str());
         return 1;
     }
 
-    if (write_file(md) != 0) {
+    FileMetadata md;
+    strncpy(md.name, path.c_str(), MD_STR_SIZE);
+    md.size = stream_size(is);
+
+    manager->reserve_file(md);
+
+    if (write_file(is, md) != 0) {
         return 1;
     }
 
     // write the metadata as input to message queue using CSV format
     auto input_msg = metadata_to_string(md);
     auto status = mq_send(input_mq, input_msg.c_str(), input_msg.size(), 0);
+
+    // format the message to be written to syslog for debugging and log it
     find_and_replace(input_msg, FLD_DL, ' ');
     if (status != 0) {
         syslog(LOG_ERR, "Failed to send message %s to input mq with error %d", input_msg.c_str(), errno);
@@ -89,7 +96,7 @@ void InProxy::write_policy_files(const std::vector<std::string> &paths) {
     auto md_total_size = (off_t) sizeof(md_count) + md_count * (off_t) sizeof(FileMetadata);
 
     // set some space to write the metadata to, advance offset to write after
-    curr_offset = md_total_size;
+    auto curr_offset = md_total_size;
 
     FileMetadata metadata[md_count];
 
@@ -100,12 +107,15 @@ void InProxy::write_policy_files(const std::vector<std::string> &paths) {
 
         std::ifstream is(path);
         if (!is) {
-            syslog(LOG_ERR, "Cannot open policy file at path %s", path.c_str());
+            syslog(LOG_ERR, "Cannot open file at path %s", path.c_str());
             exit(1);
         }
 
-        strncpy(md.name, path.c_str(), MD_STR_SIZE - 1);
-        if (write_file(md) != 0) {
+        strncpy(md.name, path.c_str(), MD_STR_SIZE);
+        md.size = stream_size(is);
+        md.offset = curr_offset;
+
+        if (write_file(is, md) != 0) {
             exit(1);
         }
     }
@@ -119,48 +129,38 @@ void InProxy::write_policy_files(const std::vector<std::string> &paths) {
     syslog(LOG_INFO, "Set input file offset to %ld", inf_offset);
 }
 
-int InProxy::write_file(FileMetadata &md) {
-    std::ifstream is(md.name);
-    if (!is) {
-        syslog(LOG_ERR, "Cannot open file at path %s", md.name);
-        return 1;
-    }
-
-    auto file_size = is_size(is);
-    auto remaining_inf_size = SHM_SIZE - curr_offset;
-    auto total_inf_size = SHM_SIZE - inf_offset;;
-    if (file_size > total_inf_size) {
-        syslog(LOG_ERR, "File %s is too big to fit in shared memory", md.name);
-        return 1;
-    } else if (file_size > remaining_inf_size) {
-        // file doesn't fit in remaining space but fits in total space, so reset
-        curr_offset = inf_offset;
-    }
-
-    md.offset = curr_offset;
-    md.size = 0;
-
+int InProxy::write_file(std::ifstream &is, const FileMetadata &md) {
     syslog(LOG_INFO, "Writing filename %s of size %ld into shm at offset %ld", md.name, md.size, md.offset);
 
-    // copy the file from disk into shm buffer by buffer
-    off_t write_offset = curr_offset;
-    while (!is.eof()) {
+    auto curr_offset = md.offset;
+    auto final_offset = md.offset + md.size;
+
+    // copy the file from disk into shm buffer by buffer, stops when there's nothing to get from the file, or we've written the provided size
+    while (!is.eof() && curr_offset < final_offset) {
         off_t start_offset = curr_offset;
-        is.read(shm_ptr + write_offset, BUF_SIZE);
+
+        // read a full buffer or the remaining size of bytes in the file (say if the md size is less than actual file size)
+        auto remaining_size = final_offset - curr_offset;
+        auto read_size = remaining_size < BUF_SIZE ? remaining_size : BUF_SIZE;
+        is.read(shm_ptr + curr_offset, read_size);
 
         if (is.fail() && !is.eof()) {
             syslog(LOG_ERR, "Failed to read buffer from file %s", md.name);
-            exit(1);
+            return 1;
         }
 
         // advance the offset and metadata counts
         auto count = is.gcount();
-        write_offset += count;
-        md.size += count;
+        curr_offset += count;
+
+        syslog(LOG_INFO, "Writing %ld bytes for filename %s into shm at offset %ld", count, md.name, start_offset);
     }
 
-    curr_offset = write_offset;
     return 0;
+}
+
+void InProxy::cleanup_input_file(const std::string &name) {
+    manager->free_file(name);
 }
 
 void InProxy::debug_shm() const {
@@ -182,3 +182,4 @@ void InProxy::debug_shm() const {
     auto shm_md_ptr = shm_ptr + sizeof(off_t) + sizeof(FileMetadata) * md_count;
     syslog(LOG_INFO, "%ld %s %s", md_count, md_string.c_str(), shm_md_ptr);
 }
+

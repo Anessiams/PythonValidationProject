@@ -19,6 +19,15 @@ add_executable(PythonValidationProject
         src/metadata.h
         src/runner.cpp
         src/runner.h
+        src/manager.cpp
+        src/manager.h
+)
+
+add_executable(PythonValidationProjectTestManager
+        src/manager.cpp
+        src/manager.h
+        src/manager.test.cpp
+        src/utils.h
 )
 
 add_executable(PythonValidationProjectTestConfig
