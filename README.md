@@ -1,6 +1,6 @@
 # PythonValidationEngine
 
-A tool to validate files using user-defined policy files implemented using python scripts. The engine is split into two components - a handler and a validator. The handler supervises the validator process(es) and communicates them using Linux IPC mechanisms such as shared memory and message queues. The handler is responsible for orchestrating IPC and synchronization mechanism while the validator is responsible for consuming IPC mechanisms and invoking the user provided policy file scripts.
+A tool to validate files using user-defined policy files implemented using python scripts. The engine is split into two components - a handler and a validator. The handler supervises the validator process(es) and communicates using Linux IPC mechanisms such as shared memory and message queues. The handler is responsible for orchestrating IPC and synchronization mechanisms while the validator is responsible for consuming IPC mechanisms and invoking the user provided policy file scripts.
 
 ## Usage
 
@@ -12,7 +12,7 @@ user@machine:~/ValidationEngine/handler$ cmake --build . --target ValidationEngi
 ```
 OR
 ```console
-user@machine:~/ValidationEngine/handler$ g++ src/!(*.test).cpp src/!(*.test).h -o out
+user@machine:~/ValidationEngine/handler$ g++ src/!(*.test).cpp src/!(*.test).h -o ValidationEngineExe
 ```
 
 ### Modify Configuration File
