@@ -12,7 +12,7 @@ user@machine:~/ValidationEngine/handler$ cmake --build . --target ValidationEngi
 ```
 OR
 ```console
-user@machine:~/ValidationEngine/handler$ g++ src/*.cpp src/*.h -o ValidationEngineExe
+user@machine:~/ValidationEngine/handler$ g++ src/!(*.test).cpp src/!(*.test).h -o out
 ```
 
 ### Modify Configuration File
