@@ -47,14 +47,14 @@ are relative to the handler executable and not the configuration file itself.
 Alternatively, use absolute file paths.
 
 ```console
-user@machine:~/ValidationEngine/handler$ ValidationEngineExe
+user@machine:~/ValidationEngine/handler$ ./ValidationEngineExe
 ```
 
 Enter a file to validate into stdin to validate it. Output for the file will be on stdout when validation is complete.
 Make sure the input file path is relative to the handler or is absolute.
 
 ```console
-user@machine:~/ValidationEngine/handler$ ValidationEngineExe
+user@machine:~/ValidationEngine/handler$ ./ValidationEngineExe
 ../path/to/file.txt
 ../path/to/file.txt 1
 ```
