@@ -1,20 +1,12 @@
-#ifndef UTILS_H_
-#define UTILS_H_
-
 #include <string>
-#include <vector>
-#include <limits>
-#include <istream>
 
 #define PATTERN " \t\f\v\n\r"
 
-inline std::string trim(std::string &str) {
-    return str.erase(0, str.find_first_not_of(PATTERN))
-        .erase(str.find_last_not_of(PATTERN));
-}
-
-inline std::string trim(std::string &&str) {
-    return trim(str);
+inline std::string trim(const std::string &str) {
+    std::string s = str;
+    s.erase(0, s.find_first_not_of(PATTERN));
+    s.erase(s.find_last_not_of(PATTERN) + 1);
+    return s;
 }
 
 inline void find_and_replace(std::string &str, char find, char replace) {
@@ -24,13 +16,3 @@ inline void find_and_replace(std::string &str, char find, char replace) {
         }
     }
 }
-
-inline std::streamsize is_size(std::istream &is) {
-    is.ignore(std::numeric_limits<std::streamsize>::max());
-    std::streamsize length = is.gcount();
-    is.clear(); // clears eof
-    is.seekg(0, std::ios_base::beg);
-    return length;
-}
-
-#endif
