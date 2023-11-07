@@ -60,6 +60,6 @@ void on_signal(int s) {
         auto name = OutProxy::parse_name(output);
         in_proxy.cleanup_input_file(name);
 
-        std::cout << output;
+        std::cout << output << "\n";
     }
 }
