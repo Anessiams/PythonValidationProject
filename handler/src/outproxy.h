@@ -3,6 +3,7 @@
 
 #include <cstdio>
 #include <mqueue.h>
+#include <string>
 
 #define OUTPUT_MQ_NAME "/validatorresults"
 #define OUT_DL '\037'

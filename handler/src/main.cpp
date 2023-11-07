@@ -5,6 +5,7 @@
 #include "inproxy.h"
 #include "outproxy.h"
 #include "runner.h"
+#include "utils.h"
 
 void on_signal(int s) {
     syslog(LOG_INFO, "Handler received a shutdown signal %d", s);
@@ -60,6 +61,7 @@ void on_signal(int s) {
         auto name = OutProxy::parse_name(output);
         in_proxy.cleanup_input_file(name);
 
+        find_and_replace(output, FLD_DL, ' ');
         std::cout << output << "\n";
     }
 }
