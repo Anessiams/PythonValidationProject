@@ -45,7 +45,17 @@ std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
 
         std::string indentation(line.size() - tr_line.size(), ' ');
 
-        auto node = std::make_unique<YamlTree>("", tr_line);
+        // Extract key and value from the line
+        size_t delimiter_pos = tr_line.find(":");
+        if (delimiter_pos == std::string::npos) {
+            // Handle error - malformed YAML line
+            continue;
+        }
+        std::string node_key = trim(tr_line.substr(0, delimiter_pos));
+        std::string node_value = trim(tr_line.substr(delimiter_pos + 1));
+
+        auto node = std::make_unique<YamlTree>(node_key, node_value);
+
 
         if (indentation.size() > prevIndentation.size()) {
             nodes.top()->children.push_back(std::move(node));

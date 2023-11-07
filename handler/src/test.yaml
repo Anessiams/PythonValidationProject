@@ -4,4 +4,19 @@ age: 30
 address:
   street: 123 Main St
   zip: '10001'
+friends:
+  friend1:
+    friend2:
+      friend3:
+        friend4:
+          friend5: deepest_friend
+      sibling_of_friend2:
+        cousin: cousin_value
+contacts:
+  phone:
+    home: '123-456-7890'
+    work: '987-654-3210'
+  social:
+    twitter: '@johndoe'
+    linkedin: 'linkedin.com/in/johndoe'
 ...
