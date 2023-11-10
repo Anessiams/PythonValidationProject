@@ -30,10 +30,6 @@ validator:
     policy-1: ../test-policy-1.py
     policy-2: ../test-policy-2.py
   instances: 1
-handler:
-  log-levels: 
-    info: 1
-    error: 2
 ```
 
 ### Writing Policy Files
