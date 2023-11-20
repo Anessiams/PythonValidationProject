@@ -21,8 +21,10 @@ def ReadPolicy():
             logger.info('Process SMR ReadPolicy Successful')
         else:
             logger.error('mmap file is not valid! Has it not been created yet?')
+            return None
     else:
         logger.error('Shared memory is not valid! Has it not been created yet?')
+        return None
 
 # Runs the input file reader module to parse and get the data in the specified
 # input file data message. This message contains the file name, offset in shared
