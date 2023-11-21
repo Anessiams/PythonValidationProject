@@ -1,3 +1,6 @@
+import sys
+
+
 def main():
     print("Failing all data")
     return 1
