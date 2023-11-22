@@ -48,14 +48,17 @@ int main() {
         outputFile << "home phone: " << (*tree)["contacts"]["phone"]["home"].get_value() << std::endl;
         std::cout << "Home phone written successfully" << std::endl;
 
+        //Writing Phone    
         std::cout << "Writing work phone to output file..." << std::endl;
         outputFile << "work phone: " << (*tree)["contacts"]["phone"]["work"].get_value() << std::endl;
         std::cout << "Work phone written successfully" << std::endl;
 
+        //Writing Social    
         std::cout << "Writing twitter handle to output file..." << std::endl;
         outputFile << "twitter: " << (*tree)["contacts"]["social"]["twitter"].get_value() << std::endl;
         std::cout << "Twitter handle written successfully" << std::endl;
 
+        //Writing Linkedin
         std::cout << "Writing linkedin profile to output file..." << std::endl;
         outputFile << "linkedin: " << (*tree)["contacts"]["social"]["linkedin"].get_value() << std::endl;
         std::cout << "Linkedin profile written successfully" << std::endl;
@@ -63,6 +66,7 @@ int main() {
         outputFile.close();
         std::cout << "Output file closed" << std::endl;
 
+        //Values written to the output file
         std::cout << "Values written to output.txt" << std::endl;
 
     } catch (const std::exception &e) {

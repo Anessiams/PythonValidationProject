@@ -35,23 +35,16 @@ def ReadFile(inputFile, mappedFile):
         fileSize = int(inputFileTokens[2])
         logger.debug(f'file size: {fileSize}')
 
-        # Create the byte array holding all the bytes read from the file
-        dataToValidate = []
-
         # read size number of bytes
-        logger.debug('Reading Bytes from mmap and appending to dataToValidate')
-        for i in range(fileSize):
-            c = mappedFile.read_byte()  # Get the current byte the mmap is pointing to
-            logger.debug(f'mmap pointing to byte {c}')
-            # Append the byte we read to the variable holding all the bytes we've read
-            dataToValidate.append(c)
-            logger.debug(f'Appended dataToValidate: {dataToValidate}')
+        logger.debug('Reading Bytes from mmap and storing it in dataToValidate')
+        dataToValidate = mappedFile.read(fileSize)
             
 
-        # Convert the byte array into a string using join with an empty character as the seperator.
-        dataToValidate = ''.join([chr(c) for c in dataToValidate])
-        logger.debug(f'Final byte array: {dataToValidate}')
+        # Convert the byte array into a string using the decode function
+        dataToValidate = dataToValidate.decode()
+        logger.debug(f'Final string: {dataToValidate}')
         logger.info(f'Process ReadFile Successful, Sending data in {inputFileTokens[0]} to the validator')
+        # put the data in an array containing the file name and the data
         inputFileAndData = [inputFileTokens[0], dataToValidate]
         return inputFileAndData
 
