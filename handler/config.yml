@@ -6,3 +6,4 @@ validator:
     policy: ../test-policy
     policy-1: ../test-policy-1
     policy-2: ../test-policy-2
+  instances: 1

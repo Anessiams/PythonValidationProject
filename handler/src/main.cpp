@@ -39,7 +39,7 @@ void on_signal(int s) {
     InProxy in_proxy(config.policy_paths);
     OutProxy out_proxy;
     ValidatorRunner runner(config.container_path);
-    runner.run_many(config.child_count);
+    runner.run_many(config.instances);
 
     // start the input loop to relay stdin and stdout to resources
     while (true) {
