@@ -8,7 +8,7 @@
 struct Config {
     std::vector<std::string> policy_paths;
     std::string container_path;
-    int child_count = 1;
+    int instances = 1;
 };
 
 class YamlTree {

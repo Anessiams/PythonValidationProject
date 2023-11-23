@@ -113,6 +113,14 @@ Config parse_config(const std::string &path) {
     config.container_path = (*tree)["validator"]["container"].get_value();
     syslog(LOG_INFO, "Container path in config %s", config.container_path.c_str());
 
+    auto instances_str = (*tree)["validator"]["instances"].get_value();
+    try {
+        config.instances = std::stoi(instances_str);
+    } catch(const std::exception &e) {
+        syslog(LOG_INFO, "Instances must be an integer %s", instances_str.c_str());
+        exit(1);
+    }
+
     std::string policy_files;
     auto &policy_files_tree = (*tree)["validator"]["policies"];
     auto &policy_files_children  = policy_files_tree.get_children();
