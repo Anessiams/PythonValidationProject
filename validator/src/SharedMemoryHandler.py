@@ -34,7 +34,8 @@ def InitializeSharedMemory():
         isValidSharedMemory = True
         logger.debug(f'isSharedMemory set to{isValidSharedMemory}')
     except ipc.ExistentialError:
-        logger.error('IPC Existential Error: Shared message IPC not found! Has it not been created yet?')
+        logger.error(
+            'IPC Existential Error: Shared message IPC not found! Has it not been created yet?')
         isValidSharedMemory = False
         logger.debug(f'isValidSharedMemory set to{isValidSharedMemory}')
 
@@ -65,18 +66,22 @@ def CleanupSharedMemory():
     logger.info('Starting Process: SMH CleanupSharedMemory')
     try:
         mapFile.close()
-        logger.info('Process SMH CleanupSharedMemory successful, mmap file closed')
+        logger.info(
+            'Process SMH CleanupSharedMemory successful, mmap file closed')
     except:
-        log.debug('No Mmap file to clean up')
+        logger.debug('No Mmap file to clean up')
     finally:
         isValidMmap = False
-        log.error(f'Mmap file is not valid, unable to clean up. isValidMmap set to{isValidMmap}')
+        logger.error(
+            f'Mmap file is not valid, unable to clean up. isValidMmap set to{isValidMmap}')
     global isValidSharedMemory
     try:
         sharedMemory.close_fd()
-        logger.info('Process SMH CleanupSharedMemory successful, shared memory closed')
+        logger.info(
+            'Process SMH CleanupSharedMemory successful, shared memory closed')
     except:
-        log.debug('No shared memory to clean up')
+        logger.debug('No shared memory to clean up')
     finally:
         isValidSharedMemory = False
-        log.error(f'Mmap file is not valid, unable to clean up. isValidMmap set to{isValidMmap}')
+        logger.error(
+            f'Mmap file is not valid, unable to clean up. isValidMmap set to{isValidMmap}')

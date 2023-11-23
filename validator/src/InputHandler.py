@@ -60,7 +60,8 @@ def ReadMessageQueue():
     # minus the null terminator
             msg = msg.decode().split(NULL_TERMINATOR)
             msg = msg[0]
-            logger.info(f'Process ReadMessageQueue Successful, Received message: {str(msg)}')
+            logger.info(
+                f'Process ReadMessageQueue Successful, Received message: {str(msg)}')
             return str(msg)
         else:
             logger.error('Message queue is invalid!')
@@ -82,8 +83,8 @@ def CleanupQueue():
         receiverMQ.close()
         logger.info('Process IH CleanupQueue Successful, queue closed')
     except:
-        log.debug('No message queue found to close')
+        logger.debug('No message queue found to close')
     finally:
-        log.error('The queue is not valid, unable to clean up')
+        logger.error('The queue is not valid, unable to clean up')
         isValidQueue = False
         logger.debug(f'isValidQueue set to {isValidQueue}')

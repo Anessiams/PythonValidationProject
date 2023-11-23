@@ -1,7 +1,7 @@
 import Logger as log
 
-my_logger = log.MyLogger()
-logger = my_logger.getLogger('valLogger')
+logger = log.Logger()
+logger = logger.getLogger('valLogger')
 
 
 def execute_script(policy_file, data_file):

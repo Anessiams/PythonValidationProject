@@ -5,15 +5,22 @@
 
 import logging
 import logging.config
+import os
 
 # to set this up in the modules use the format:
 # import Logger as log
-# my_logger = log.MyLogger()
-# logger = my_logger.getLogger('valLogger')
+# logger = log.Logger()
+# logger = logger.getLogger('valLogger')
 
 
 class Logger:
     def __init__(self):
+
+        # Get the current working directory and create a log dir if one does not exist
+        current_dir = os.getcwd()
+        logs_dir = os.path.join(current_dir, 'logs')
+        os.makedirs(logs_dir, exist_ok=True)
+
         self.log_config = {
             'version': 1,
             'formatters': {
@@ -29,27 +36,27 @@ class Logger:
             'handlers': {
                 'consoleHandler': {
                     'class': 'logging.StreamHandler',
-                    'level': 'INFO',
+                    'level': logging.INFO,
                     'formatter': 'genFormat',
                 },
                 'debugFileHandler': {
                     'class': 'logging.FileHandler',
-                    'level': 'DEBUG',
+                    'level': logging.DEBUG,
                     'formatter': 'genFormat',
-                    'filename': 'logs_debug.log',
+                    'filename': os.path.join(logs_dir, 'logs_debug.log'),
                     'mode': 'a',
                 },
                 'errorFileHandler': {
                     'class': 'logging.FileHandler',
-                    'level': 'ERROR',
+                    'level': logging.ERROR,
                     'formatter': 'genFormat',
-                    'filename': 'logs_error.log',
+                    'filename': os.path.join(logs_dir, 'logs_error.log'),
                     'mode': 'a',
                 },
             },
             'loggers': {
                 'valLogger': {
-                    'level': 'DEBUG',
+                    'level': logging.DEBUG,
                     'handlers': ['consoleHandler', 'debugFileHandler', 'errorFileHandler'],
                     'propagate': 0,
                 }
