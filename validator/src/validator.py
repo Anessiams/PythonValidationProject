@@ -1,3 +1,9 @@
+import Logger as log
+
+my_logger = log.MyLogger()
+logger = my_logger.getLogger('valLogger')
+
+
 def execute_script(policy_file, data_file):
     try:
         '''
@@ -10,20 +16,37 @@ def execute_script(policy_file, data_file):
         '''
         # This dictionary serves as the container for the exec() call
         policy_dict = {}
-
-        # Executes the policy file. Stores potential global var or functions in {}, 
-        # and local functions and variables in policy_dict 
+        logger.debug(f'Policy dictionary container created')
+        # Executes the policy file. Stores potential global var or functions in {},
+        # and local functions and variables in policy_dict
+        logger.info(f'Starting execution of policy file {policy_file}')
         exec(policy_file, {}, policy_dict)
 
         # Provides a reference to the validate function defined by the policy file
+        logger.info(f'Looking for validate function')
         validate_func = policy_dict['validate']
 
         # Error checks on the return value of the validate function
         if validate_func is None or not callable(validate_func):
-            raise ValueError("The policy file must contain a function named 'validate'.")
+            logger.error(f'policy file does not have a validate function')
+            raise ValueError(
+                "The policy file must contain a function named 'validate'.")
+
+        logger.debug(f'Validate function found')
+        logger.debug(f'Getting the validation result')
 
         # Calls the validate function in the with data_file as an argument and returns its output
-        return validate_func(data_file)
-    
+        # storing the value in a result variable so it can be logged and returned
+        result = validate_func(data_file)
+
+        if result == 0:
+            logger.info(f'received {result} : Test has failed')
+        else:
+            logger.info(f'received {result} : Test has passed')
+
+        logger.debug(f'returning result to runner')
+        return result
+
     except Exception as e:
+        logger.error(f'Exception error in validator.py')
         return f"Exception: {str(e)}"

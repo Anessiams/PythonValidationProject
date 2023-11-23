@@ -1,24 +1,26 @@
 # Dockerfile, Image, Container
-#base image 
+# base image 
 FROM python:3.11
 
-#create another director in the container base directory
+# create another directory in the container base directory
 WORKDIR /validator
 
+# copy requirements file to the container
 COPY ./Requirements.txt /validator/Requirements.txt
-# no cache to utilize docker cache to optimize rebuilding images
-RUN pip install --no-cache-dir -r /validator/Requirements.txt
 
-#copying the src code placed in src folder
+# install dependencies
+RUN pip install --no-cache-dir -r Requirements.txt
+
+# copy the source code placed in the src folder
 COPY ./src /validator/src
 
+# install additional dependency
 RUN pip install posix-ipc 
-# RUN pip install python-signal need to confirm if included or installed.
 
+# copy logging configuration file
 COPY ./logging.conf /validator
-RUN pip install --no-cache-dir -r /validator/logging.conf
 
-#this is the executable to run this container
-# im using Runner as our executable file
+# specify the executable to run this container
+# using Runner as your executable file
 # linux terminal equivalence: python3 Runner.py
-CMD["python3", './Runner.py']
+CMD ["python3", "src/Runner.py"]

@@ -7,7 +7,7 @@ import logging
 import logging.config
 
 # to set this up in the modules use the format:
-# import log_config as log
+# import Logger as log
 # my_logger = log.MyLogger()
 # logger = my_logger.getLogger('valLogger')
 
