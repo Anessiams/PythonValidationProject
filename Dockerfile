@@ -6,13 +6,13 @@ FROM python:3.8
 WORKDIR /validator
 
 # copy requirements file to the container
-COPY ./Requirements.txt /validator/Requirements.txt
+COPY ./validator/Requirements.txt /validator/Requirements.txt
 
 # install dependencies
 RUN pip install --no-cache-dir -r Requirements.txt
 
 # copy the source code placed in the src folder
-COPY ./src /validator/src
+COPY ./validator/src /validator/src
 
 # install additional dependency
 RUN pip install posix-ipc 
