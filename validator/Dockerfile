@@ -17,9 +17,6 @@ COPY ./src /validator/src
 # install additional dependency
 RUN pip install posix-ipc 
 
-# copy logging configuration file
-COPY ./logging.conf /validator
-
 # specify the executable to run this container
 # using Runner as your executable file
 # linux terminal equivalence: python3 Runner.py
