@@ -20,10 +20,12 @@ def ReadPolicy():
             policyread.ReadFile(smh.mapFile)
             logger.info('Process SMR ReadPolicy Successful')
         else:
-            logger.error('mmap file is not valid! Has it not been created yet?')
+            logger.error(
+                'mmap file is not valid! Has it not been created yet?')
             return None
     else:
-        logger.error('Shared memory is not valid! Has it not been created yet?')
+        logger.error(
+            'Shared memory is not valid! Has it not been created yet?')
         return None
 
 # Runs the input file reader module to parse and get the data in the specified
@@ -43,8 +45,10 @@ def ReadInputFile(inputFileData):
             logger.info('Process SMR ReadInputFile Successful')
             return dataToValidate
         else:
-            logger.error('mmap file is not valid! Has it not been created yet?')
+            logger.error(
+                'mmap file is not valid! Has it not been created yet?')
             return None
     else:
-        logger.error('Shared memory is not valid! Has it not been created yet?')
+        logger.error(
+            'Shared memory is not valid! Has it not been created yet?')
         return None

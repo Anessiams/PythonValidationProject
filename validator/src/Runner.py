@@ -19,6 +19,8 @@ logger = log.Logger()
 logger = logger.getLogger('valLogger')
 
 # Cleanup functions
+
+
 def ProgramCleanup():
     logger.info('Starting Process: ProgramCleanup')
     Cleanup.CloseQueues()
@@ -46,13 +48,16 @@ if (smh.isValidSharedMemory):
         # First item is policy file name, second item is the data itself.
         policyFileNameData = reader.ReadPolicy()
         if (policyFileNameData == None):
-            logger.error('Reading and parsing policy file failed. Exiting program')
+            logger.error(
+                'Reading and parsing policy file failed. Exiting program')
             exit(1)
     else:
-        logger.error('mmap of shared memory invalid, check if it was created. Exititing program')
+        logger.error(
+            'mmap of shared memory invalid, check if it was created. Exititing program')
         exit(1)
 else:
-    logger.error('Shared memory invalid, check if it was created. Exititing program')
+    logger.error(
+        'Shared memory invalid, check if it was created. Exititing program')
     exit(1)
 
 # Create message queues
@@ -77,8 +82,10 @@ while (inq.isValidQueue and outq.isValidQueue):
             logger.info('Ending Validation process')
             exit(1)
         else:
-            logger.debug(f'Validating data file {dataToValidate[1]} against policy file {policyFileNameData[1]}')
-            result = val.execute_script(policyFileNameData[1], dataToValidate[1])
+            logger.debug(
+                f'Validating data file {dataToValidate[1]} against policy file {policyFileNameData[1]}')
+            result = val.execute_script(
+                policyFileNameData[1], dataToValidate[1])
             logger.debug(f'Validator result: {result}')
             outq.SendMessage(dataToValidate[0] + chr(31) + str(result))
             logger.debug('message sent to output')
