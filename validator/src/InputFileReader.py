@@ -36,14 +36,15 @@ def ReadFile(inputFile, mappedFile):
         logger.debug(f'file size: {fileSize}')
 
         # read size number of bytes
-        logger.debug('Reading Bytes from mmap and storing it in dataToValidate')
+        logger.debug(
+            'Reading Bytes from mmap and storing it in dataToValidate')
         dataToValidate = mappedFile.read(fileSize)
-            
 
         # Convert the byte array into a string using the decode function
         dataToValidate = dataToValidate.decode()
         logger.debug(f'Final string: {dataToValidate}')
-        logger.info(f'Process ReadFile Successful, Sending data in {inputFileTokens[0]} to the validator')
+        logger.info(
+            f'Process ReadFile Successful, Sending data in {inputFileTokens[0]} to the validator')
         # put the data in an array containing the file name and the data
         inputFileAndData = [inputFileTokens[0], dataToValidate]
         return inputFileAndData
@@ -62,8 +63,10 @@ def ParseInputMessage(messageToParse):
 
     # if we split the string into more than three elements, it means that we encountered too many seperators
     if (len(parsedMessage) != 3):
-        logger.error(f'invalid format- Expected: 3, Received: {parsedMessage.len}')
+        logger.error(
+            f'invalid format- Expected: 3, Received: {parsedMessage.len}')
         parsedMessage = None
 
-    logger.info(f'Process ParseInputMessage Successful, sending {parsedMessage}')
+    logger.info(
+        f'Process ParseInputMessage Successful, sending {parsedMessage}')
     return parsedMessage
