@@ -7,11 +7,11 @@ ValidatorRunner::ValidatorRunner(std::string &container_path) : container_path(c
 void ValidatorRunner::run_one() {
     auto run_command = "docker run -d " + container_path;
     int status = system(run_command.c_str());
-    if (status == -1) {
+    if (status != 0) {
         syslog(LOG_ERR, "Unable to start the container");
-        exit(1);
+//        exit(1);
     } else {
-        syslog(LOG_ERR, "Started the the container using command %s", run_command.c_str());
+        syslog(LOG_ERR, "Started the container using command %s", run_command.c_str());
     }
 }
 
