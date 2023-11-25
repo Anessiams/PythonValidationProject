@@ -17,8 +17,9 @@ def ReadPolicy():
     logger.info('Starting Process: SMR ReadPolicy')
     if (smh.isValidSharedMemory):
         if (smh.isValidMmap):
-            policyread.ReadFile(smh.mapFile)
+            policyFileNameData = policyread.ReadFile(smh.mapFile)
             logger.info('Process SMR ReadPolicy Successful')
+            return policyFileNameData
         else:
             logger.error(
                 'mmap file is not valid! Has it not been created yet?')

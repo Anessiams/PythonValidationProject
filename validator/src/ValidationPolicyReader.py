@@ -3,6 +3,7 @@
 
 # imported modules
 import Logger as log
+import struct
 
 # Creation and Set-up of the logger
 logger = log.Logger()
@@ -10,8 +11,6 @@ logger = logger.getLogger('valLogger')
 
 # Read the file, using the given mmap object, and process the data
 # of the validation policy file accordingly.
-
-
 def ReadFile(mappedFile):
     logger.info("Starting process: ParsePolicyFile")
     mappedFile.seek(0)  # set mmap to beginning of shared memory
@@ -20,15 +19,17 @@ def ReadFile(mappedFile):
     mappedFile.read(8)
 
     # Next 4096 bytes: Name of the policy file to read
-    policyFileName = mappedFile.read(4096).decode().strip()
+    policyFileName = mappedFile.read(4096).decode('utf-8', 'ignore').strip()
     logger.info(f'Parsing policy file: {policyFileName}')
 
     # Next 8 bytes: offset of the policy file to read
-    policyFileOffset = int(mappedFile.read(8).decode().strip())
+    pfoBytes = mappedFile.read(8)
+    policyFileOffset = struct.unpack('<Q', pfoBytes)[0]
     logger.info(f'Policy file offset (bytes): {policyFileOffset}')
 
     # Next 8 bytes: size of the policy file to read
-    policyFileSize = int(mappedFile.read(8).decode().strip())
+    pfsBytes = mappedFile.read(8)
+    policyFileSize = struct.unpack('<Q', pfsBytes)[0]
     logger.info(f'Policy file size (bytes): {policyFileSize}')
 
     # Read the policy file data

@@ -8,37 +8,34 @@
 
 YamlTree::YamlTree(std::string key, std::string value): key(std::move(key)), value(std::move(value)) {}
 
-//add child node to current
 void YamlTree::add_child(std::unique_ptr<YamlTree> &child) {
     children.push_back(std::move(child));
 }
-// operator to access child node by key value
+
 YamlTree &YamlTree::operator[](const std::string &child_key) {
     for (auto &child: children) {
         if (child->get_key() == child_key) {
             return *child;
         }
     }
-    syslog(LOG_ERR, "Not able to find the key %s in yaml tree with child_key %s", child_key.c_str(), key.c_str());
+    syslog(LOG_ERR, "Cannot find child_key %s in yaml tree with child_key %s", child_key.c_str(), key.c_str());
     static YamlTree dummy("", "");
     return dummy;
 }
 
-// Accessor for the key
+
 std::string &YamlTree::get_key() {
     return key;
 }
 
-//Accessor for the value
 std::string &YamlTree::get_value() {
     return value;
 }
 
-//Accessor for the children
 std::vector<std::unique_ptr<YamlTree>> &YamlTree::get_children() {
     return children;
 }
-// Parses a YAML file and build the tree structure
+
 std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
     std::stack<YamlTree*> nodes;
     std::string prevIndentation;
@@ -54,10 +51,10 @@ std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
 
         std::string indentation(line.size() - tr_line.size(), ' ');
 
-        // we will extract the key and value from the trimline.
+        // Extract key and value from the line
         size_t delimiter_pos = tr_line.find(':');
         if (delimiter_pos == std::string::npos) {
-            // Error handling
+            // Handle error - malformed YAML line
             continue;
         }
         std::string node_key = trim(tr_line.substr(0, delimiter_pos));
@@ -70,7 +67,7 @@ std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
             nodes.top()->add_child(node);
             nodes.push(nodes.top()->get_children().back().get());
         } else {
-            while (nodes.size() > indentation.size() / 2) {  // 2 space per level is assumed
+            while (nodes.size() > indentation.size() / 2) {  // Assuming 2 spaces per level
                 nodes.pop();
             }
             if (nodes.empty()) {
@@ -86,7 +83,6 @@ std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
     return tree;
 }
 
-//Loads a yaml file and return tree
 std::unique_ptr<YamlTree> load_yaml_file(const std::string &path) {
     std::ifstream is(path);
     if (!is) {
@@ -105,13 +101,12 @@ std::unique_ptr<YamlTree> load_yaml_file(const std::string &path) {
     return read_into_tree(is);
 }
 
-//Parses the config for yaml file
 Config parse_config(const std::string &path) {
     auto tree = load_yaml_file(path);
 
     Config config;
-    config.container_path = (*tree)["validator"]["container"].get_value();
-    syslog(LOG_INFO, "Container path in config %s", config.container_path.c_str());
+    config.container_tag = (*tree)["validator"]["container"].get_value();
+    syslog(LOG_INFO, "Container path in config %s", config.container_tag.c_str());
 
     auto instances_str = (*tree)["validator"]["instances"].get_value();
     try {

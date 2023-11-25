@@ -38,7 +38,7 @@ void on_signal(int s) {
 
     InProxy in_proxy(config.policy_paths);
     OutProxy out_proxy;
-    ValidatorRunner runner(config.container_path);
+    ValidatorRunner runner(config.container_tag);
     runner.run_many(config.instances);
 
     // start the input loop to relay stdin and stdout to resources

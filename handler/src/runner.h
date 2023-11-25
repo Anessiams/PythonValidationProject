@@ -16,7 +16,7 @@ public:
     // stop all validator processes and instruct them to clean-up
     void stop_all();
 private:
-    std::string &container_path;
+    std::string &container_tag;
 };
 
 #endif

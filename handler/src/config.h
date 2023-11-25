@@ -7,7 +7,7 @@
 
 struct Config {
     std::vector<std::string> policy_paths;
-    std::string container_path;
+    std::string container_tag;
     int instances = 1;
 };
 
