@@ -106,7 +106,7 @@ Config parse_config(const std::string &path) {
 
     Config config;
     config.container_tag = (*tree)["validator"]["container"].get_value();
-    syslog(LOG_INFO, "Container path in config %s", config.container_tag.c_str());
+    syslog(LOG_INFO, "Container tag in config %s", config.container_tag.c_str());
 
     auto instances_str = (*tree)["validator"]["instances"].get_value();
     try {

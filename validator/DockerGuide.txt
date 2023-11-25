@@ -19,7 +19,7 @@ Order of instruction in the Dockerfile is important, when updating the file keep
 Create a Docker image: docker build
     use docker build to create the initial docker image from a dockerfile
     Note: This does NOT start or create the container
-        CMD: docker build -t dataValidator
+        CMD: docker build -t dataValidator .
         where "-t dataValidator" is used to specify a name for the built image.
     Returns an id 
 

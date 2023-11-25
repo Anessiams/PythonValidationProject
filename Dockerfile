@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir -r Requirements.txt
 COPY ./validator/src /validator/src
 
 # install additional dependency
-RUN pip install posix-ipc 
+RUN pip install posix-ipc
 
 # specify the executable to run this container
 # using Runner as your executable file

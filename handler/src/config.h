@@ -9,6 +9,7 @@ struct Config {
     std::vector<std::string> policy_paths;
     std::string container_tag;
     int instances = 1;
+    std::string managerType;
 };
 
 class YamlTree {

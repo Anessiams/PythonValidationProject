@@ -1,11 +1,16 @@
 #include <syslog.h>
 #include <iostream>
 #include <csignal>
+#include <mutex>
 #include "config.h"
 #include "inproxy.h"
 #include "outproxy.h"
 #include "runner.h"
 #include "utils.h"
+
+// global variable to store all child processes, so they can be killed when program terminates
+std::vector<pid_t> pid_children;
+std::mutex g_lock;
 
 void on_signal(int s) {
     syslog(LOG_INFO, "Handler received a shutdown signal %d", s);
@@ -18,6 +23,12 @@ void on_signal(int s) {
     if (shm_unlink(SHM_NAME)) {
         syslog(LOG_INFO, "Failed to unlink shm %s", SHM_NAME);
     }
+    g_lock.lock();
+    for (auto pid : pid_children) {
+        kill(pid, SIGTERM);
+        syslog(LOG_INFO, "Gracefully killed validator instance %d", pid);
+    }
+    g_lock.unlock();
     exit(0);
 }
 
@@ -38,7 +49,7 @@ void on_signal(int s) {
 
     InProxy in_proxy(config.policy_paths);
     OutProxy out_proxy;
-    ValidatorRunner runner(config.container_tag);
+    ValidatorRunner runner(pid_children, g_lock, config.container_tag);
     runner.run_many(config.instances);
 
     // start the input loop to relay stdin and stdout to resources

@@ -1,7 +1,7 @@
 ---
 # Configuration yaml file
 validator:
-  container: validator:1
+  container: validator:4
   policies:
     policy: ../sample-policies/dirtyword_check.py
   instances: 1

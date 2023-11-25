@@ -35,6 +35,7 @@ InProxy::InProxy(const std::vector<std::string> &policy_paths) {
     // write policy files to the shared memory as part of initialization
     write_policy_files(policy_paths);
     // initialize the input files manager
+    syslog(LOG_INFO,  "Managing input file offset %ld", inf_offset);
     manager = std::make_unique<FileManager>(inf_offset, SHM_SIZE);
 }
 
@@ -132,7 +133,7 @@ void InProxy::write_policy_files(const std::vector<std::string> &paths) {
 int InProxy::write_file(std::ifstream &is, const FileMetadata &md) {
     syslog(LOG_INFO, "Writing filename %s of size %ld into shm at offset %ld", md.name, md.size, md.offset);
 
-    auto curr_offset = md.offset;
+    auto curr_offset = inf_offset + md.offset;
     auto final_offset = md.offset + md.size;
 
     // copy the file from disk into shm buffer by buffer, stops when there's nothing to get from the file, or we've written the provided size
@@ -174,8 +175,6 @@ void InProxy::debug_shm() const {
         std::memcpy(&metadata[i], shm_md_ptr, sizeof(FileMetadata));
         md_string += metadata_to_string(metadata[i]) + " ";
     }
-
-    syslog(LOG_INFO, "Debugging for input file offset %ld", inf_offset);
 
     // format the message to be written to syslog for debugging and log it
     find_and_replace(md_string, FLD_DL, ' ');
