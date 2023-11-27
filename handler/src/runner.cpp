@@ -16,12 +16,11 @@ void ValidatorRunner::run_one() {
     }
     if (pid == 0) {
         // redirect all logs of the validator to another file
-        int fd = open("/var/log/syslog", O_WRONLY);
+        int fd = open("/dev/null",O_CREAT | O_RDWR | O_APPEND);
 
         // redirect stdout and stdin of the process to the file
         dup2(fd, 1);
         dup2(fd, 2);
-        close(fd);
 
         // run a validator instance on the child process and exit once finished
         auto run_command = "docker run --ipc=host " + container_tag;
@@ -30,8 +29,8 @@ void ValidatorRunner::run_one() {
             syslog(LOG_ERR, "Unable to start the container inside validator instance");
             exit(1);
         }
-        syslog(LOG_INFO, "Started the a container in validator instance using command %s", run_command.c_str());
 
+        close(fd);
         exit(0);
     }
     g_lock.lock();
