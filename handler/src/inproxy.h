@@ -7,7 +7,6 @@
 #include <vector>
 #include <memory>
 #include "metadata.h"
-#include "manager.h"
 
 #define INPUT_MQ_NAME "/filesunvalidated"
 #define SHM_NAME "/file-data"
@@ -48,8 +47,8 @@ private:
     // shared memory
     int shm_fd = 0;
     char *shm_ptr = nullptr;
-    off_t inf_offset = 0; // offset where input files begin (after policy files)
-    std::unique_ptr<FileManager> manager; // the file manager for the input files in shm
+    off_t beg_inf_offset = 0; // offset where input files begin (after policy files)
+    off_t next_inf_offset = 0; // the next offset where an input file should be read from whenever an input file is read
 };
 
 #endif

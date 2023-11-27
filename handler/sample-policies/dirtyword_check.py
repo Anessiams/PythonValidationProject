@@ -5,6 +5,6 @@ def validate(data_file):
     for each in dirtywords:
         if each in data_file.split():
             print("Banned words found")
-            return 0
+            return 1
     print("No secrets found")
-    return 1
+    return 0

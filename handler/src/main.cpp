@@ -32,7 +32,7 @@ void on_signal(int s) {
     exit(0);
 }
 
-[[noreturn]] int main(int argc, char **argv) {
+int main(int argc, char **argv) {
     openlog("forcepoint-msg-handler", LOG_PID, LOG_USER);
 
     signal(SIGINT, on_signal);
@@ -70,8 +70,6 @@ void on_signal(int s) {
         }
 
         auto name = OutProxy::parse_name(output);
-        in_proxy.cleanup_input_file(name);
-
         find_and_replace(output, FLD_DL, ' ');
         std::cout << output << "\n";
     }

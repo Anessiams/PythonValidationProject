@@ -1,0 +1,7 @@
+---
+# Configuration yaml file
+validator:
+  container: validator:4
+  policies:
+    policy: /home/joseph/Documents/GitHub/PythonValidationProjectMerge/handler/sample-policies/dirtyword_check.py
+  instances: 1

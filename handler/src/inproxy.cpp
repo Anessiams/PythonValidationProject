@@ -34,9 +34,6 @@ InProxy::InProxy(const std::vector<std::string> &policy_paths) {
     syslog(LOG_INFO, "Memory mapped shm to address %p", shm_ptr);
     // write policy files to the shared memory as part of initialization
     write_policy_files(policy_paths);
-    // initialize the input files manager
-    syslog(LOG_INFO,  "Managing input file offset %ld", inf_offset);
-    manager = std::make_unique<FileManager>(inf_offset, SHM_SIZE);
 }
 
 InProxy::~InProxy() {
@@ -70,11 +67,16 @@ int InProxy::send_input_file(const std::string &path) {
     FileMetadata md;
     strncpy(md.name, path.c_str(), MD_STR_SIZE);
     md.size = stream_size(is);
-
-    manager->reserve_file(md);
+    md.offset = next_inf_offset;
 
     if (write_file(is, md) != 0) {
         return 1;
+    }
+
+    // wrap around back to the start when we run out of space
+    next_inf_offset += md.size;
+    if (next_inf_offset > SHM_SIZE) {
+        next_inf_offset = beg_inf_offset;
     }
 
     // write the metadata as input to message queue using CSV format
@@ -119,6 +121,8 @@ void InProxy::write_policy_files(const std::vector<std::string> &paths) {
         if (write_file(is, md) != 0) {
             exit(1);
         }
+
+        curr_offset += md.size;
     }
 
     // copy metadata and size into the shm
@@ -126,21 +130,21 @@ void InProxy::write_policy_files(const std::vector<std::string> &paths) {
     std::memcpy(shm_ptr + sizeof(md_count), metadata, sizeof(FileMetadata) * md_count);
 
     // set the inf offset at the end of the policy files
-    inf_offset = curr_offset;
-    syslog(LOG_INFO, "Set input file offset to %ld", inf_offset);
+    beg_inf_offset = next_inf_offset = curr_offset;
+    syslog(LOG_INFO, "Set input file offset to %ld", beg_inf_offset);
 }
 
 int InProxy::write_file(std::ifstream &is, const FileMetadata &md) {
     syslog(LOG_INFO, "Writing filename %s of size %ld into shm at offset %ld", md.name, md.size, md.offset);
 
-    auto curr_offset = inf_offset + md.offset;
+    auto curr_offset = md.offset;
     auto final_offset = md.offset + md.size;
 
     // copy the file from disk into shm buffer by buffer, stops when there's nothing to get from the file, or we've written the provided size
     while (!is.eof() && curr_offset < final_offset) {
         off_t start_offset = curr_offset;
 
-        // read a full buffer or the remaining size of bytes in the file (say if the md size is less than actual file size)
+        // read a full buffer or the remaining size of bytes in the file
         auto remaining_size = final_offset - curr_offset;
         auto read_size = remaining_size < BUF_SIZE ? remaining_size : BUF_SIZE;
         is.read(shm_ptr + curr_offset, read_size);
@@ -150,6 +154,8 @@ int InProxy::write_file(std::ifstream &is, const FileMetadata &md) {
             return 1;
         }
 
+        syslog(LOG_INFO, "Read a buffer with contents %s", shm_ptr + curr_offset);
+
         // advance the offset and metadata counts
         auto count = is.gcount();
         curr_offset += count;
@@ -158,10 +164,6 @@ int InProxy::write_file(std::ifstream &is, const FileMetadata &md) {
     }
 
     return 0;
-}
-
-void InProxy::cleanup_input_file(const std::string &name) {
-    manager->free_file(name);
 }
 
 void InProxy::debug_shm() const {
