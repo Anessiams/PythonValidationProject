@@ -54,3 +54,8 @@ user@machine:~/ValidationEngine/handler$ ./ValidationEngineExe ../path/to/config
 ../path/to/file.txt
 ../path/to/file.txt 1
 ```
+
+###_Permissions Issues
+1) Make sure you build the container using root privileges
+2) Run the handler using root privileges
+3) If the handler throws errno 13 for creating the shared memory (you'll see this in the SYSLOG), then try `chmod 777 /dev/shm`
