@@ -19,11 +19,11 @@ logger = logger.getLogger('valLogger')
 
 def InitializeQueue():
     global isValidQueue
-    logger.info('Starting Process: OH InitializeQueue')
+    logger.debug('Starting Process: OH InitializeQueue')
     try:
         global senderMQ
         senderMQ = ipc.MessageQueue(QUEUE_NAME, read=False, write=True)
-        logger.info('Process OH InitializeQueue Successful')
+        logger.debug('Process OH InitializeQueue Successful')
 
         isValidQueue = True
         logger.debug(f'isValidQueue set to {isValidQueue}')
@@ -39,11 +39,11 @@ def InitializeQueue():
 
 
 def SendMessage(msg):
-    logger.info('Starting Process: OH SendMessage')
+    logger.debug('Starting Process: OH SendMessage')
     if (isValidQueue):
-        logger.info(f'Sending message: {str(msg)}')
+        logger.debug(f'Sending message: {str(msg)}')
         senderMQ.send(msg)
-        logger.info('Process OH SendMessage Successful, message sent')
+        logger.debug('Process OH SendMessage Successful, message sent')
     else:
         logger.error("Message not sent: Message queue is not valid!")
 
@@ -53,10 +53,10 @@ def SendMessage(msg):
 
 def CleanupQueue():
     global isValidQueue
-    logger.info('Starting Process: OH CleanupQueue ')
+    logger.debug('Starting Process: OH CleanupQueue ')
     try:
         senderMQ.close()
-        logger.info('Process OH CleanupQueue Successful, queue closed')
+        logger.debug('Process OH CleanupQueue Successful, queue closed')
     except:
         logger.debug('No message queue found to close')
     finally:

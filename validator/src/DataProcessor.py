@@ -12,10 +12,10 @@ logger = logger.getLogger('valLogger')
 
 
 def ProcessMessage(message):
-    logger.info('Staring Process: ProcessMessage')
+    logger.debug('Staring Process: ProcessMessage')
     try:
         length = len(message)
-        logger.info(
+        logger.debug(
             f'Process ProcessMessage Successful. Message {message}, Length {length}')
         return length
     except TypeError:

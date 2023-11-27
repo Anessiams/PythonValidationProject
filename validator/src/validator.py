@@ -19,11 +19,11 @@ def execute_script(policy_file, data_file):
         logger.debug(f'Policy dictionary container created')
         # Executes the policy file. Stores potential global var or functions in {},
         # and local functions and variables in policy_dict
-        logger.info(f'Starting execution of policy file {policy_file}')
+        logger.debug(f'Starting execution of policy file {policy_file}')
         exec(policy_file, {}, policy_dict)
 
         # Provides a reference to the validate function defined by the policy file
-        logger.info(f'Looking for validate function')
+        logger.debug(f'Looking for validate function')
         validate_func = policy_dict['validate']
 
         # Error checks on the return value of the validate function

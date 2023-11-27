@@ -17,13 +17,13 @@ UNIT_SEPERATOR = chr(31)
 
 
 def ReadFile(inputFile, mappedFile):
-    logger.info('Starting Process: ReadFile')
+    logger.debug('Starting Process: ReadFile')
     inputFileTokens = ParseInputMessage(inputFile)
     if (inputFileTokens == None):
         logger.debug('inputFileTokens array empty')
         return None
     else:
-        logger.info(f'Reading input file: {inputFileTokens[0]}')
+        logger.debug(f'Reading input file: {inputFileTokens[0]}')
 
         offset = int(inputFileTokens[1])
         logger.debug(f'Offset value: {offset}')
@@ -43,7 +43,7 @@ def ReadFile(inputFile, mappedFile):
         # Convert the byte array into a string using the decode function
         dataToValidate = dataToValidate.decode()
         logger.debug(f'Final string: {dataToValidate}')
-        logger.info(
+        logger.debug(
             f'Process ReadFile Successful, Sending data in {inputFileTokens[0]} to the validator')
         # put the data in an array containing the file name and the data
         inputFileAndData = [inputFileTokens[0], dataToValidate]
@@ -57,7 +57,7 @@ def ReadFile(inputFile, mappedFile):
 # 1 - file offset (in bytes)
 # 2 - file length (in bytes)
 def ParseInputMessage(messageToParse):
-    logger.info('Starting Process: ParseInputMessage')
+    logger.debug('Starting Process: ParseInputMessage')
     # split our input message into the three sections seperated by the unit seperator character
     parsedMessage = messageToParse.split(UNIT_SEPERATOR)
 
@@ -67,6 +67,6 @@ def ParseInputMessage(messageToParse):
             f'invalid format- Expected: 3, Received: {parsedMessage.len}')
         parsedMessage = None
 
-    logger.info(
+    logger.debug(
         f'Process ParseInputMessage Successful, sending {parsedMessage}')
     return parsedMessage
