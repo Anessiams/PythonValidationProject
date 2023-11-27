@@ -14,11 +14,11 @@ logger = logger.getLogger('valLogger')
 
 
 def ReadPolicy():
-    logger.info('Starting Process: SMR ReadPolicy')
+    logger.debug('Starting Process: SMR ReadPolicy')
     if (smh.isValidSharedMemory):
         if (smh.isValidMmap):
             policyFileNameData = policyread.ReadFile(smh.mapFile)
-            logger.info('Process SMR ReadPolicy Successful')
+            logger.debug('Process SMR ReadPolicy Successful')
             return policyFileNameData
         else:
             logger.error(

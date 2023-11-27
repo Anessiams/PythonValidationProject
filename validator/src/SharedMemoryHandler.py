@@ -23,7 +23,7 @@ isValidMmap = False
 
 def InitializeSharedMemory():
     # Create the shared memory IPC mechanism
-    logger.info('Staring Process: SMH InitializeSharedMemory')
+    logger.debug('Staring Process: SMH InitializeSharedMemory')
     global isValidSharedMemory
 
     try:
@@ -63,10 +63,10 @@ def InitializeSharedMemory():
 
 def CleanupSharedMemory():
     global isValidMmap
-    logger.info('Starting Process: SMH CleanupSharedMemory')
+    logger.debug('Starting Process: SMH CleanupSharedMemory')
     try:
         mapFile.close()
-        logger.info(
+        logger.debug(
             'Process SMH CleanupSharedMemory successful, mmap file closed')
     except:
         logger.debug('No Mmap file to clean up')

@@ -28,7 +28,7 @@ def InitializeQueue():
         global receiverMQ
         receiverMQ = ipc.MessageQueue(QUEUE_NAME, read=True, write=False)
         isValidQueue = True
-        logger.info('Process IH InitializeQueue Successful')
+        logger.debug('Process IH InitializeQueue Successful')
         logger.debug(f'isValidQueue set to {isValidQueue}')
     except ipc.ExistentialError:
         logger.error(
@@ -44,7 +44,7 @@ def InitializeQueue():
 
 def ReadMessageQueue():
     global isValidQueue
-    logger.info('Starting Process: IH ReadMessageQueue')
+    logger.debug('Starting Process: IH ReadMessageQueue')
 
     try:
         if (isValidQueue):
@@ -60,7 +60,7 @@ def ReadMessageQueue():
     # minus the null terminator
             msg = msg.decode().split(NULL_TERMINATOR)
             msg = msg[0]
-            logger.info(
+            logger.debug(
                 f'Process ReadMessageQueue Successful, Received message: {str(msg)}')
             return str(msg)
         else:
@@ -78,10 +78,10 @@ def ReadMessageQueue():
 
 def CleanupQueue():
     global isValidQueue
-    logger.info('Starting Process: IH CleanupQueue')
+    logger.debug('Starting Process: IH CleanupQueue')
     try:
         receiverMQ.close()
-        logger.info('Process IH CleanupQueue Successful, queue closed')
+        logger.debug('Process IH CleanupQueue Successful, queue closed')
     except:
         logger.debug('No message queue found to close')
     finally:
