@@ -67,17 +67,24 @@ int InProxy::send_input_file(const std::string &path) {
     FileMetadata md;
     strncpy(md.name, path.c_str(), MD_STR_SIZE);
     md.size = stream_size(is);
-    md.offset = next_inf_offset;
+
+    auto avail_space = SHM_SIZE - beg_inf_offset;
+    if (md.size > avail_space) {
+        // cannot write a file that is larger than the avail space
+        syslog(LOG_ERR, "Cannot write a file %s of that size %ld with only %ld space", path.c_str(), md.size, avail_space);
+        return 1;
+    } else if (curr_inf_offset + md.size > SHM_SIZE) {
+        // wrap around back to the start when we run out of space
+        curr_inf_offset = beg_inf_offset;
+    }
+
+    md.offset = curr_inf_offset;
 
     if (write_file(is, md) != 0) {
         return 1;
     }
 
-    // wrap around back to the start when we run out of space
-    next_inf_offset += md.size;
-    if (next_inf_offset > SHM_SIZE) {
-        next_inf_offset = beg_inf_offset;
-    }
+    curr_inf_offset += md.size;
 
     // write the metadata as input to message queue using CSV format
     auto input_msg = metadata_to_string(md);
@@ -130,7 +137,7 @@ void InProxy::write_policy_files(const std::vector<std::string> &paths) {
     std::memcpy(shm_ptr + sizeof(md_count), metadata, sizeof(FileMetadata) * md_count);
 
     // set the inf offset at the end of the policy files
-    beg_inf_offset = next_inf_offset = curr_offset;
+    beg_inf_offset = curr_inf_offset = curr_offset;
     syslog(LOG_INFO, "Set input file offset to %ld", beg_inf_offset);
 }
 

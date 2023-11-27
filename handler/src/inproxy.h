@@ -48,7 +48,7 @@ private:
     int shm_fd = 0;
     char *shm_ptr = nullptr;
     off_t beg_inf_offset = 0; // offset where input files begin (after policy files)
-    off_t next_inf_offset = 0; // the next offset where an input file should be read from whenever an input file is read
+    off_t curr_inf_offset = 0; // the next offset where an input file should be read from whenever an input file is read
 };
 
 #endif
