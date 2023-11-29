@@ -36,6 +36,7 @@ std::vector<std::unique_ptr<YamlTree>> &YamlTree::get_children() {
     return children;
 }
 
+// Parses a YAML file and build the tree structure
 std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
     std::stack<YamlTree*> nodes;
     std::string prevIndentation;
@@ -51,10 +52,10 @@ std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
 
         std::string indentation(line.size() - tr_line.size(), ' ');
 
-        // Extract key and value from the line
+        // we will extract the key and value from the trimline.
         size_t delimiter_pos = tr_line.find(':');
         if (delimiter_pos == std::string::npos) {
-            // Handle error - malformed YAML line
+            // Error handling
             continue;
         }
         std::string node_key = trim(tr_line.substr(0, delimiter_pos));
@@ -67,7 +68,7 @@ std::unique_ptr<YamlTree> read_into_tree(std::ifstream &is) {
             nodes.top()->add_child(node);
             nodes.push(nodes.top()->get_children().back().get());
         } else {
-            while (nodes.size() > indentation.size() / 2) {  // Assuming 2 spaces per level
+            while (nodes.size() > indentation.size() / 2) {  // 2 space per level is assumed
                 nodes.pop();
             }
             if (nodes.empty()) {
